@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Login · AB Management</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="login-body">
+  <form class="login-card" method="post" action="/login">
+    <div class="login-title">AB Management</div>
+    <div class="login-sub">Laboratory & Diagnostic Centre</div>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    <label>Username</label>
+    <input name="username" autocomplete="username" required autofocus>
+    <label>Password</label>
+    <input name="password" type="password" autocomplete="current-password" required>
+    <button type="submit">Login</button>
+  </form>
+</body>
+</html>

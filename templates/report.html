@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Report {{ patient.lab_no }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="print-body">
+  <div class="print-actions">
+    <form method="get" class="search">
+      <select name="department">
+        <option value="">All Departments</option>
+        {% for dept in departments %}
+          <option value="{{ dept }}" {% if dept == department %}selected{% endif %}>{{ dept }}</option>
+        {% endfor %}
+      </select>
+      <button>Show</button>
+    </form>
+    <button onclick="window.print()">Print</button>
+    <form method="post" action="/report/{{ patient.lab_no }}/mark-printed">
+      <input type="hidden" name="department" value="{{ department }}">
+      <button>Mark Printed</button>
+    </form>
+    <a class="button ghost" href="/results?lab_no={{ patient.lab_no }}">Edit Results</a>
+    <a class="button ghost" href="/patients/{{ patient.lab_no }}">Back</a>
+  </div>
+  {% if report_html %}
+    {{ report_html|safe }}
+  {% else %}
+    <section class="print-page"><div class="empty-report">No saved results found for this patient.</div></section>
+  {% endif %}
+</body>
+</html>

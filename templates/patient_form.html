@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+{% set title = "New Patient" %}
+{% block content %}
+<form class="panel form" method="post" action="/patients/new" id="patientForm">
+  <div class="form-head">
+    <div>
+      <div class="panel-title">Patient Registration</div>
+      <div class="muted">Next Lab No: <strong>{{ lab_no }}</strong></div>
+    </div>
+    <button type="submit">Save Patient</button>
+  </div>
+
+  <!-- Patient Information Section -->
+  <div class="panel-title small">Patient Information</div>
+  <div class="grid">
+    <label>Title<select name="title"><option>Mr.</option><option>Mrs.</option><option>Miss</option><option>Ms.</option><option>Baby</option><option>B/O</option><option>Dr.</option></select></label>
+    <label>Patient Name<input name="patient_name" required></label>
+    <label>Age<input name="age"></label>
+    <label>Age Type<select name="age_type"><option>Years</option><option>Months</option><option>Weeks</option><option>Days</option></select></label>
+    <label>Gender<select name="gender"><option>Male</option><option>Female</option><option>Other</option></select></label>
+    <label>Contact<input name="contact"></label>
+    <label>Doctor / Ref By<input name="ref_by"></label>
+    <label>Panel<select name="panel_name">{% for p in panels %}<option>{{ p.name }}</option>{% endfor %}</select></label>
+  </div>
+
+  <!-- Tests Selection Section -->
+  <div class="panel-title small">Select Tests</div>
+  <input id="testSearch" placeholder="Search tests... (e.g. CBC, LFT, Blood Sugar)" oninput="filterTests()" style="width: 100%; padding: 8px; margin-bottom: 10px; border: 1px solid #ddd; border-radius: 4px;">
+  <div class="test-grid" id="testGrid">
+    {% for t in tests %}
+      <label class="test-chip" data-name="{{ t.test_name|lower }} {{ t.department|lower }}" onclick="event.stopPropagation(); updateTotal()">
+        <input type="checkbox" name="test_names" value="{{ t.test_name }}" onchange="updateTotal()">
+        <span>{{ t.test_name }}</span>
+        <em data-price="{{ t.price }}">Rs. {{ t.price|money }}</em>
+      </label>
+    {% endfor %}
+  </div>
+
+  <!-- Billing Section -->
+  <div class="panel-title small">Billing Information</div>
+  <div class="billing-grid">
+    <div class="billing-item">
+      <label>Total Amount (Rs.)</label>
+      <div class="billing-value" id="totalAmount">0</div>
+      <input type="hidden" name="total_amount" id="totalInput" value="0">
+    </div>
+    <div class="billing-item">
+      <label>Discount (Rs.)</label>
+      <input name="discount" type="number" id="discountInput" value="0" step="0.01" oninput="updateBalance()" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+    </div>
+    <div class="billing-item">
+      <label>Amount Paid (Rs.)</label>
+      <input name="paid_amount" type="number" id="paidInput" value="0" step="0.01" oninput="updateBalance()" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+    </div>
+    <div class="billing-item">
+      <label>Balance (Rs.)</label>
+      <div class="billing-value" id="balanceAmount">0</div>
+    </div>
+    <div class="billing-item">
+      <label>Payment Status</label>
+      <select name="payment_status" id="paymentStatus" style="padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+        <option value="UNPAID">UNPAID</option>
+        <option value="PARTIAL">PARTIAL</option>
+        <option value="PAID">PAID</option>
+      </select>
+    </div>
+  </div>
+</form>
+
+<style>
+  .test-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  .test-chip {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+  .test-chip:hover {
+    border-color: #1f5f8b;
+    background-color: #f0f7ff;
+  }
+  .test-chip input[type="checkbox"] {
+    margin-bottom: 8px;
+  }
+  .test-chip span {
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 5px;
+  }
+  .test-chip em {
+    font-style: normal;
+    font-size: 12px;
+    color: #15803d;
+    font-weight: bold;
+  }
+  
+  .billing-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background-color: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  .billing-item {
+    display: flex;
+    flex-direction: column;
+  }
+  .billing-item label {
+    font-weight: 600;
+    font-size: 12px;
+    color: #667085;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .billing-value {
+    font-size: 24px;
+    font-weight: bold;
+    color: #1f5f8b;
+    padding: 8px;
+    background: white;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+  }
+  .billing-item input, .billing-item select {
+    font-size: 16px;
+    font-weight: 500;
+  }
+</style>
+
+<script>
+function filterTests(){
+  const q = document.getElementById('testSearch').value.toLowerCase();
+  document.querySelectorAll('.test-chip').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? 'flex' : 'none';
+  });
+}
+
+function updateTotal(){
+  let total = 0;
+  document.querySelectorAll('.test-chip input[type="checkbox"]:checked').forEach(cb => {
+    const priceEm = cb.closest('.test-chip').querySelector('em');
+    total += parseFloat(priceEm.dataset.price) || 0;
+  });
+  
+  document.getElementById('totalAmount').textContent = total.toFixed(2);
+  document.getElementById('totalInput').value = total.toFixed(2);
+  updateBalance();
+}
+
+function updateBalance(){
+  const total = parseFloat(document.getElementById('totalInput').value) || 0;
+  const discount = parseFloat(document.getElementById('discountInput').value) || 0;
+  const paid = parseFloat(document.getElementById('paidInput').value) || 0;
+  
+  const balance = (total - discount - paid);
+  document.getElementById('balanceAmount').textContent = balance.toFixed(2);
+  
+  // Auto-update payment status
+  const paymentStatus = document.getElementById('paymentStatus');
+  if (balance <= 0) {
+    paymentStatus.value = 'PAID';
+  } else if (paid > 0) {
+    paymentStatus.value = 'PARTIAL';
+  } else {
+    paymentStatus.value = 'UNPAID';
+  }
+}
+
+// Initialize on load
+document.addEventListener('DOMContentLoaded', function() {
+  updateTotal();
+});
+</script>
+{% endblock %}

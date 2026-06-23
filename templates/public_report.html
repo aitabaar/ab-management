@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Check Lab Report</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="print-body">
+  <div class="public-report-shell no-print">
+    <div>
+      <h1>Check Lab Report</h1>
+      <p>Enter your lab number to view the report.</p>
+    </div>
+    <form method="get" action="/public-report" class="public-report-search">
+      <input name="lab_no" value="{{ lab_no }}" placeholder="Lab No e.g. 0004" required autofocus>
+      <button>Search</button>
+    </form>
+    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+  </div>
+  {% if patient and report_html %}
+    <div class="public-report-meta no-print">
+      <strong>{{ patient.title }} {{ patient.patient_name|upper }}</strong>
+      <span>PID: {{ patient.lab_no }}</span>
+      <button onclick="window.print()">Print</button>
+    </div>
+    {{ report_html|safe }}
+  {% endif %}
+</body>
+</html>

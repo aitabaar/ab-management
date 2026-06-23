@@ -1,0 +1,3 @@
+﻿{% extends "base.html" %}{% set title="Test Format" %}{% block content %}
+<form method="post" class="panel"><div class="panel-title">{{ test_name }} Format</div><table id="fmt"><thead><tr><th>Parameter</th><th>Unit</th><th>Reference Range</th></tr></thead><tbody>{% for r in rows %}<tr><td><input name="parameter" value="{{ r.parameter }}"></td><td><input name="unit" value="{{ r.unit }}"></td><td><input name="reference_range" value="{{ r.reference_range }}"></td></tr>{% endfor %}<tr><td><input name="parameter"></td><td><input name="unit"></td><td><input name="reference_range"></td></tr></tbody></table><br><button>Save Format</button><a class="button ghost" href="/tests">Back</a></form>
+{% endblock %}

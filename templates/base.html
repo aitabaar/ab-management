@@ -1,0 +1,37 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ title or "AB Management Web" }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <aside class="sidebar">
+    <div class="brand"><div class="brand-title">AB Management</div><div class="brand-sub">Laboratory System</div></div>
+    <nav>
+      <a href="/dashboard">Dashboard</a>
+      <a href="/patients">Patients</a>
+      <a href="/patients/new">New Patient</a>
+      <a href="/results">Result Entry</a>
+      <a href="/pending-ready">Pending / Ready</a>
+      <a href="/reports">Reports</a>
+      <a href="/report-logs">Report Logs</a>
+      <a href="/slips">Slips</a>
+      <a href="/billing">Billing</a>
+      <a href="/tests">Test Master</a>
+      <a href="/departments">Departments</a>
+      <a href="/panels">Panel Rates</a>
+      <a href="/settings">Settings</a>
+      <a href="/users">Users</a>
+      <a href="/backup">Backup</a>
+    </nav>
+    <a class="sidebar-logout" href="/logout">Logout</a>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div><div class="top-title">{{ title or self.h1() or "Dashboard" }}</div><div class="top-sub">Browser version connected to existing lab database</div></div><details class="user-menu"><summary>{{ user.username if user else "" }} - {{ user.role if user else "" }}</summary><a href="/logout">Logout</a></details></header>
+    <section class="content">{% block content %}{% endblock %}</section>
+  </main>
+</body>
+</html>

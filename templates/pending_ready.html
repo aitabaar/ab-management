@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% set title = "Pending / Ready" %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" class="search">
+    <select name="department">
+      <option value="">All Departments</option>
+      {% for dept in departments %}
+        <option value="{{ dept }}" {% if dept == department %}selected{% endif %}>{{ dept }}</option>
+      {% endfor %}
+    </select>
+    <select name="status">
+      <option value="">All Status</option>
+      <option value="PENDING" {% if status == "PENDING" %}selected{% endif %}>Pending</option>
+      <option value="PARTIAL" {% if status == "PARTIAL" %}selected{% endif %}>Partial</option>
+      <option value="READY" {% if status == "READY" %}selected{% endif %}>Ready</option>
+    </select>
+    <button>Filter</button>
+  </form>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Lab No</th><th>Patient</th><th>Booking</th><th>Tests</th><th>Progress</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for row in rows %}
+      <tr>
+        <td>{{ row.patient.lab_no }}</td>
+        <td>{{ row.patient.title }} {{ row.patient.patient_name }}</td>
+        <td>{{ row.patient.booking_date }}</td>
+        <td>
+          {% for t in row.tests %}
+            <span class="mini-chip">{{ t.name }}</span>
+          {% endfor %}
+        </td>
+        <td>{{ row.done }} / {{ row.total }}</td>
+        <td><span class="badge status-{{ row.status|lower }}">{{ row.status }}</span></td>
+        <td class="row-actions">
+          <a class="link" href="/results?lab_no={{ row.patient.lab_no }}">Result</a>
+          <a class="link" href="/report/{{ row.patient.lab_no }}" target="_blank">Report</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

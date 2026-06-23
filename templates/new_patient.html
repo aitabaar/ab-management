@@ -1,0 +1,27 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Register Patient</title>
+    <style>body{font-family:Arial,Helvetica,sans-serif;padding:18px;} label{display:block;margin-top:8px} input,select,textarea{padding:6px;width:400px;max-width:100%} .small{width:120px}</style>
+  </head>
+  <body>
+    <h1>Register Patient</h1>
+    <form method="post" action="/patients/new">
+      <label>Title <input name="title" value="Mr."></label>
+      <label>Patient Name <input name="patient_name" required></label>
+      <label>Age <input name="age" class="small"></label>
+      <label>Age Type <select name="age_type"><option>Years</option><option>Months</option><option>Weeks</option><option>Days</option></select></label>
+      <label>Gender <select name="gender"><option>Male</option><option>Female</option><option>Other</option></select></label>
+      <label>Contact <input name="contact"></label>
+      <label>Ref By / Doctor <input name="ref_by"></label>
+      <label>Panel <select name="panel_name">
+        {% for p in panels %}
+          <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select></label>
+      <label>Tests (comma separated) <input name="tests" placeholder="e.g. CBC, LFT" value="CBC"></label>
+      <div style="margin-top:12px"><button type="submit">Save & Show Slip</button> <a href="/patients">Cancel</a></div>
+    </form>
+  </body>
+</html>

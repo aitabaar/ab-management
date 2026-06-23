@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% set title = "Daily Patients" %}
+{% block content %}
+<div class="panel">
+  <div class="detail-head">
+    <div>
+      <div class="panel-title">📊 Daily Patients Summary</div>
+      <div class="muted">Patient collection and report tracking</div>
+    </div>
+  </div>
+
+  <!-- Date Filter -->
+  <form method="get" class="search" style="margin-bottom: 20px;">
+    <input type="date" name="date" value="{{ date }}">
+    <button>View Date</button>
+  </form>
+
+  <!-- Summary Cards -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+    <div style="background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #1f5f8b;">
+      <div style="font-size: 12px; font-weight: 600; color: #667085;">TOTAL PATIENTS</div>
+      <div style="font-size: 28px; color: #1f5f8b; font-weight: bold; margin-top: 8px;">{{ stats.total_patients|default(0) }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #15803d;">
+      <div style="font-size: 12px; font-weight: 600; color: #667085;">AMOUNT COLLECTED</div>
+      <div style="font-size: 28px; color: #15803d; font-weight: bold; margin-top: 8px;">Rs. {{ "%.2f"|format(stats.total_paid|default(0)) }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fdf2f8 0%, #fce7f3 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #be185d;">
+      <div style="font-size: 12px; font-weight: 600; color: #667085;">OUTSTANDING</div>
+      <div style="font-size: 28px; color: #be185d; font-weight: bold; margin-top: 8px;">Rs. {{ "%.2f"|format(stats.total_balance|default(0)) }}</div>
+    </div>
+    <div style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); padding: 20px; border-radius: 8px; border-left: 4px solid #b45309;">
+      <div style="font-size: 12px; font-weight: 600; color: #667085;">TOTAL BILLING</div>
+      <div style="font-size: 28px; color: #b45309; font-weight: bold; margin-top: 8px;">Rs. {{ "%.2f"|format(stats.total_amount|default(0)) }}</div>
+    </div>
+  </div>
+
+  <!-- Patients Table -->
+  <table>
+    <thead><tr><th>Lab No</th><th>Patient Name</th><th>Total</th><th>Paid</th><th>Balance</th><th>Payment</th><th>Report</th></tr></thead>
+    <tbody>
+      {% for p in patients %}
+      <tr onclick="window.location='/patients/{{ p.lab_no }}'" style="cursor: pointer;">
+        <td><strong>{{ p.lab_no }}</strong></td>
+        <td>{{ p.patient_name }}</td>
+        <td>Rs. {{ "%.2f"|format(p.total_amount|default(0)) }}</td>
+        <td style="color: #15803d; font-weight: bold;">Rs. {{ "%.2f"|format(p.paid_amount|default(0)) }}</td>
+        <td style="color: #be185d; font-weight: bold;">Rs. {{ "%.2f"|format(p.balance|default(0)) }}</td>
+        <td><span class="badge" style="background: {% if p.payment_status=='PAID' %}#dcfce7{% elif p.payment_status=='PARTIAL' %}#fef08a{% else %}#fee2e2{% endif %}; color: {% if p.payment_status=='PAID' %}#15803d{% elif p.payment_status=='PARTIAL' %}#b45309{% else %}#b42318{% endif %};">{{ p.payment_status }}</span></td>
+        <td><span class="badge" style="background: {% if p.report_status=='COMPLETED' %}#dcfce7{% else %}#dbeafe{% endif %}; color: {% if p.report_status=='COMPLETED' %}#15803d{% else %}#1f5f8b{% endif %};">{{ p.report_status or 'PENDING' }}</span></td>
+      </tr>
+      {% else %}
+      <tr><td colspan="7" style="text-align: center; color: #999;">No patients for this date</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

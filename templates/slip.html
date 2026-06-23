@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Slip {{ patient.lab_no }}</title>
+  <link rel="stylesheet" href="/static/app.css">
+</head>
+<body class="print-body">
+  <div class="print-actions">
+    <button onclick="window.print()">Print</button>
+    <a class="button ghost" href="/patients/{{ patient.lab_no }}">Back</a>
+  </div>
+  <section class="slip-page">
+    <div class="slip-title">Patient Receipt / Collection Slip</div>
+    <div class="slip-head">
+      <div>
+        <div class="slip-name">{{ patient.title }} {{ patient.patient_name|upper }}</div>
+        <div>Age: {{ patient.age }} {{ patient.age_type }}</div>
+        <div>Sex: {{ patient.gender }}</div>
+        <div>PID: {{ patient.lab_no }}</div>
+      </div>
+      <div class="slip-code">
+        {% if qr_code %}
+          <img class="slip-qr" src="{{ qr_code }}" alt="QR Code" width="42" height="42" style="display:block;width:42px;height:42px;object-fit:contain;">
+        {% else %}
+          PID<br>{{ patient.lab_no }}
+        {% endif %}
+      </div>
+    </div>
+    <div class="slip-info">
+      <div><b>Lab No</b><span>{{ patient.lab_no }}</span></div>
+      <div><b>Date</b><span>{{ patient.booking_date }}</span></div>
+      <div><b>Ref By</b><span>{{ patient.ref_by or patient.doctor or "-" }}</span></div>
+      <div><b>Panel</b><span>{{ patient.panel_name or "Self" }}</span></div>
+    </div>
+    <div class="barcode">{{ patient.lab_no }}</div>
+    <div class="slip-section">Test Details</div>
+    <table class="slip-table">
+      <thead><tr><th>#</th><th>Test</th><th>Amount</th></tr></thead>
+      <tbody>
+      {% for t in tests %}
+      <tr><td>{{ loop.index }}</td><td>{{ t.test_name }}</td><td>Rs. {{ t.price|money }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    <div class="slip-totals">
+      <div><span>Total Amount</span><b>Rs. {{ patient.total_amount|money }}</b></div>
+      <div><span>Discount</span><b>Rs. {{ patient.discount|money }}</b></div>
+      <div><span>Paid</span><b>Rs. {{ patient.paid_amount|money }}</b></div>
+      <div class="balance"><span>Balance</span><b>Rs. {{ patient.balance|money }}</b></div>
+    </div>
+    <div class="slip-footer">Payment Status: {{ patient.payment_status }}</div>
+  </section>
+</body>
+</html>

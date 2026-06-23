@@ -1,0 +1,4 @@
+{% extends "base.html" %}{% block h1 %}Users{% endblock %}{% block content %}
+<form method="post" action="/users/save" class="card"><h2>Add / Update User</h2><div class="formgrid"><input name="username" placeholder="Username" required><input name="password" placeholder="Password" required><select name="role"><option>Admin</option><option>Reception</option><option>Lab Technician</option></select><button class="btn green">Save User</button></div></form>
+<div class="card"><table><tr><th>Username</th><th>Role</th><th>Action</th></tr>{% for u in users %}<tr><td>{{ u.username }}</td><td>{{ u.role }}</td><td>{% if u.username not in ['syedali','admin'] %}<form method="post" action="/users/delete" onsubmit="return confirm('Delete user?')"><input type="hidden" name="username" value="{{ u.username }}"><button class="btn danger">Delete</button></form>{% endif %}</td></tr>{% endfor %}</table></div>
+{% endblock %}

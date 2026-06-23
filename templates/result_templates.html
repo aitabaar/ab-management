@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% set title = "Result Templates" %}
+{% block content %}
+<div class="panel">
+  <div class="detail-head">
+    <div>
+      <div class="panel-title">📋 Result Templates</div>
+      <div class="muted">Quick text templates for test results</div>
+    </div>
+    <button onclick="document.getElementById('templateForm').style.display=document.getElementById('templateForm').style.display=='none'?'block':'none'" class="button">+ Add Template</button>
+  </div>
+
+  <!-- Add Template Form (Hidden) -->
+  <div id="templateForm" style="display: none; margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #ddd;">
+    <h3>Add New Template</h3>
+    <form method="post" action="/result-templates" class="grid">
+      <label>Template Type<select name="template_type" required>
+        <option value="">Select Type</option>
+        <option value="MORPHOLOGY">MORPHOLOGY</option>
+        <option value="REMARKS">REMARKS</option>
+        <option value="CUSTOM">CUSTOM</option>
+      </select></label>
+      <label>Shortcut<input name="shortcut" placeholder="e.g., NCN, IDA" required></label>
+      <label>Template Text<textarea name="text" style="grid-column: 1/-1;" placeholder="Enter template text..." required></textarea></label>
+      <label><button type="submit">Save Template</button></label>
+    </form>
+  </div>
+
+  <!-- Templates by Type -->
+  {% set types = templates|groupby('template_type') %}
+  {% for template_type, group in types %}
+  <div style="margin-bottom: 30px;">
+    <h3 style="border-bottom: 2px solid #1f5f8b; padding-bottom: 10px; margin-bottom: 15px;">{{ template_type }}</h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+      {% for t in group %}
+      <div style="background: #f8fafc; padding: 12px; border-radius: 6px; border-left: 3px solid #1f5f8b; cursor: pointer;" onclick="copyToClipboard('{{ t.text|replace('\n', '\\n')|replace("'", "\\'") }}')">
+        <div style="font-weight: 600; color: #1f5f8b;">{{ t.shortcut }}</div>
+        <div style="font-size: 12px; color: #666; margin-top: 5px; line-height: 1.4;">{{ t.text[:50] }}{% if t.text|length > 50 %}...{% endif %}</div>
+        <div style="font-size: 10px; color: #999; margin-top: 8px;">Click to copy</div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Copied to clipboard!');
+  });
+}
+</script>
+{% endblock %}

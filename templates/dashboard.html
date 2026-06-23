@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% set title = "Dashboard" %}
+{% block content %}
+<div class="stats">
+  <div class="stat"><span>Today Patients</span><strong>{{ stats.today_patients }}</strong></div>
+  <div class="stat"><span>Total Patients</span><strong>{{ stats.total_patients }}</strong></div>
+  <div class="stat"><span>Today Revenue</span><strong>Rs. {{ stats.today_revenue|money }}</strong></div>
+  <div class="stat"><span>Pending Reports</span><strong>{{ stats.pending }}</strong></div>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Recent Patients</div>
+  <table>
+    <thead><tr><th>Lab No</th><th>Patient</th><th>Booking</th><th>Panel</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for p in recent %}
+      <tr>
+        <td>{{ p.lab_no }}</td>
+        <td>{{ p.title }} {{ p.patient_name }}</td>
+        <td>{{ p.booking_date }}</td>
+        <td>{{ p.panel_name or "Self" }}</td>
+        <td><span class="badge">{{ p.payment_status }}</span></td>
+        <td><a class="link" href="/patients/{{ p.lab_no }}">Open</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

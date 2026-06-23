@@ -1,0 +1,61 @@
+﻿{% extends "base.html" %}
+{% set title = "Patient " ~ patient.lab_no %}
+{% block content %}
+<div class="panel">
+  <div class="detail-head"><div><div class="patient-name">{{ patient.title }} {{ patient.patient_name|upper }}</div><div class="muted">{{ patient.age }} {{ patient.age_type }} - {{ patient.gender }} - {{ patient.booking_date }}</div></div><div class="detail-actions"><span class="badge big">{{ patient.payment_status }}</span><a class="button ghost" href="/slip/{{ patient.lab_no }}" target="_blank">Slip</a><a class="button ghost" href="/results?lab_no={{ patient.lab_no }}">Enter Result</a><a class="button" href="/report/{{ patient.lab_no }}" target="_blank">Report</a></div></div>
+  <form method="post" action="/patients/{{ patient.lab_no }}/edit" class="grid">
+    <label>Title<input name="title" value="{{ patient.title }}"></label><label>Name<input name="patient_name" value="{{ patient.patient_name }}"></label><label>Age<input name="age" value="{{ patient.age }}"></label><label>Age Type<input name="age_type" value="{{ patient.age_type }}"></label>
+    <label>Gender<select name="gender"><option {% if patient.gender=='Male' %}selected{% endif %}>Male</option><option {% if patient.gender=='Female' %}selected{% endif %}>Female</option><option {% if patient.gender=='Other' %}selected{% endif %}>Other</option></select></label><label>Contact<input name="contact" value="{{ patient.contact or '' }}"></label><label>Ref By<input name="ref_by" value="{{ patient.ref_by or patient.doctor or '' }}"></label><label>Panel<input name="panel_name" value="{{ patient.panel_name or 'Self' }}"></label>
+    <label><span>&nbsp;</span><button>Save Patient</button></label>
+  </form>
+</div>
+
+<!-- Billing Information Card -->
+<div class="panel" style="background: linear-gradient(135deg, #f8fafc 0%, #eef2f6 100%); border: 2px solid #1f5f8b;">
+  <div class="panel-title" style="color: #1f5f8b;">💰 Billing Information</div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+    <div style="text-align: center;">
+      <div style="font-size: 12px; color: #667085; font-weight: 600; margin-bottom: 8px;">TOTAL AMOUNT</div>
+      <div style="font-size: 28px; color: #1f5f8b; font-weight: bold;">Rs. {{ patient.total_amount|money }}</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 12px; color: #667085; font-weight: 600; margin-bottom: 8px;">DISCOUNT</div>
+      <div style="font-size: 28px; color: #b7791f; font-weight: bold;">- Rs. {{ patient.discount|money }}</div>
+    </div>
+    <div style="text-align: center;">
+      <div style="font-size: 12px; color: #667085; font-weight: 600; margin-bottom: 8px;">AMOUNT PAID</div>
+      <div style="font-size: 28px; color: #15803d; font-weight: bold;">Rs. {{ patient.paid_amount|money }}</div>
+    </div>
+    <div style="text-align: center; background: white; padding: 15px; border-radius: 8px; border: 2px solid #15803d;">
+      <div style="font-size: 12px; color: #667085; font-weight: 600; margin-bottom: 8px;">BALANCE DUE</div>
+      <div style="font-size: 28px; color: #15803d; font-weight: bold;">Rs. {{ patient.balance|money }}</div>
+    </div>
+  </div>
+  
+  <!-- Quick Payment Update -->
+  <form method="post" action="/patients/{{ patient.lab_no }}/edit" style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #d6dde6;">
+    <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; align-items: flex-end;">
+      <label style="margin: 0;">
+        <span style="font-size: 12px; font-weight: 600; color: #667085;">Update Discount</span>
+        <input name="discount" type="number" value="{{ patient.discount or 0 }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px;">
+      </label>
+      <label style="margin: 0;">
+        <span style="font-size: 12px; font-weight: 600; color: #667085;">Update Paid Amount</span>
+        <input name="paid_amount" type="number" value="{{ patient.paid_amount or 0 }}" step="0.01" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px;">
+      </label>
+      <label style="margin: 0;">
+        <span style="font-size: 12px; font-weight: 600; color: #667085;">Payment Status</span>
+        <select name="payment_status" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-top: 5px;">
+          <option value="UNPAID" {% if patient.payment_status=='UNPAID' %}selected{% endif %}>UNPAID</option>
+          <option value="PARTIAL" {% if patient.payment_status=='PARTIAL' %}selected{% endif %}>PARTIAL</option>
+          <option value="PAID" {% if patient.payment_status=='PAID' %}selected{% endif %}>PAID</option>
+        </select>
+      </label>
+      <button type="submit" style="padding: 8px 16px; background: #1f5f8b; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Update</button>
+    </div>
+  </form>
+</div>
+
+<div class="panel"><div class="panel-title">Booked Tests</div><table><thead><tr><th>Test</th><th>Price</th><th>Status</th><th></th></tr></thead><tbody>{% for t in tests %}<tr><td>{{ t.test_name }}</td><td>Rs. {{ t.price|money }}</td><td>{{ t.status if 'status' in t.keys() else '-' }}</td><td><form method="post" action="/patients/{{ patient.lab_no }}/tests/{{ t.id }}/remove" onsubmit="return confirm('Remove test?')"><button class="small ghost">Remove</button></form></td></tr>{% endfor %}</tbody></table></div>
+<div class="panel"><div class="panel-title">Add Test</div><form method="post" action="/patients/{{ patient.lab_no }}/tests/add" class="search"><select name="test_name">{% for t in all_tests %}<option value="{{ t.test_name }}">{{ t.test_name }} - Rs. {{ t.price|money }}</option>{% endfor %}</select><button>Add Test</button></form></div>
+{% endblock %}

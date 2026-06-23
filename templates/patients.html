@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% set title = "Patients" %}
+{% block content %}
+<div class="toolbar">
+  <form method="get" class="search">
+    <input name="q" value="{{ q }}" placeholder="Search lab no, patient, contact, doctor">
+    <input type="date" name="date_from" value="{{ date_from }}" placeholder="From Date">
+    <input type="date" name="date_to" value="{{ date_to }}" placeholder="To Date">
+    <button>Search</button>
+  </form>
+  <a class="button" href="/patients/new">New Patient</a>
+</div>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Lab No</th><th>Patient</th><th>Gender</th><th>Booking</th><th>Panel</th><th>Total</th><th>Paid</th><th></th></tr></thead>
+    <tbody>
+    {% for p in patients %}
+      <tr>
+        <td>{{ p.lab_no }}</td>
+        <td>{{ p.title }} {{ p.patient_name }}</td>
+        <td>{{ p.gender }}</td>
+        <td>{{ p.booking_date }}</td>
+        <td>{{ p.panel_name or "Self" }}</td>
+        <td>Rs. {{ p.total_amount|money }}</td>
+        <td>Rs. {{ p.paid_amount|money }}</td>
+        <td class="row-actions">
+          <a class="link" href="/patients/{{ p.lab_no }}">Open</a>
+          <a class="link" href="/results?lab_no={{ p.lab_no }}">Result</a>
+          <a class="link" href="/slip/{{ p.lab_no }}" target="_blank">Slip</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

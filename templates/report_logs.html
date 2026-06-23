@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% set title = "Report Logs" %}
+{% block content %}
+<form method="get" class="panel search">
+  <input name="q" value="{{ q }}" placeholder="Lab no, user, action">
+  <button>Search</button>
+</form>
+<div class="panel">
+  <table>
+    <thead><tr><th>Time</th><th>Lab No</th><th>Department</th><th>Action</th><th>User</th></tr></thead>
+    <tbody>
+    {% for log in logs %}
+      <tr><td>{{ log.created_at }}</td><td>{{ log.lab_no }}</td><td>{{ log.department or '-' }}</td><td><b>{{ log.action }}</b></td><td>{{ log.user }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

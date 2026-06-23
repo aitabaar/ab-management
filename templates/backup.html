@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% set title="Backup" %}{% block content %}
+<div class="panel">
+  <div class="panel-title">Database Backup</div>
+  <p class="muted">Runtime database: Supabase PostgreSQL ({{ database_host }})</p>
+  <p>Backups and restore are managed from the Supabase dashboard. Render runs this web service without persistent local database storage.</p>
+  <a class="btn" href="https://supabase.com/dashboard" target="_blank" rel="noopener">Open Supabase</a>
+</div>
+{% endblock %}

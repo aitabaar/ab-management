@@ -1,0 +1,9 @@
+{% extends "base.html" %}{% block h1 %}Reports{% endblock %}{% block content %}
+<div class="card no-print"><form class="formgrid">
+  <input name="q" value="{{ q }}" placeholder="Search Lab No / Patient / Ref">
+  <input type="date" name="date_from" value="{{ date_from }}">
+  <input type="date" name="date_to" value="{{ date_to }}">
+  <button class="btn">Search</button>
+</form></div>
+<div class="card"><table><tr><th>Lab No</th><th>Patient</th><th>Date</th><th>Status</th><th>Results</th><th>Action</th></tr>{% for p in patients %}<tr><td><b>{{ p.lab_no }}</b></td><td>{{ p.title }} {{ p.patient_name }}</td><td>{{ p.booking_date }}</td><td><span class="pill {{ p.report_status }}">{{ p.report_status }}</span></td><td>{{ p.result_count }}</td><td class="actions"><a class="btn green" href="/report/{{ p.lab_no }}">Open Report</a><a class="btn secondary" href="/slip/{{ p.lab_no }}">Slip</a><a class="btn" href="/results?lab_no={{ p.lab_no }}">Edit Results</a></td></tr>{% endfor %}</table></div>
+{% endblock %}

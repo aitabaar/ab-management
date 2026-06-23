@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% set title = "Slip Search" %}
+{% block content %}
+<form class="panel search" method="get">
+  <input name="q" value="{{ q }}" placeholder="Lab no, patient, phone">
+  <input name="date_from" value="{{ date_from }}" placeholder="Date from e.g. 21-06-2026">
+  <input name="date_to" value="{{ date_to }}" placeholder="Date to e.g. 21-06-2026">
+  <button>Search</button>
+</form>
+<div class="panel">
+  <table>
+    <thead><tr><th>Lab No</th><th>Patient</th><th>Date</th><th>Panel</th><th>Amount</th><th>Action</th></tr></thead>
+    <tbody>
+    {% for p in patients %}
+      <tr>
+        <td><b>{{ p.lab_no }}</b></td>
+        <td>{{ p.title }} {{ p.patient_name }}</td>
+        <td>{{ p.booking_date }}</td>
+        <td>{{ p.panel_name or 'Self' }}</td>
+        <td>Rs. {{ p.total_amount|money }}</td>
+        <td class="row-actions"><a class="button" href="/slip/{{ p.lab_no }}" target="_blank">Open Slip</a><a class="button ghost" href="/patients/{{ p.lab_no }}">Patient</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

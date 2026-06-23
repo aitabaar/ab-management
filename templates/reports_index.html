@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Reports</title></head><body>
+<h1>View Report</h1>
+<form action="/reports/" method="get">
+  <label>Lab No: <input name="lab_no"></label>
+  <label>Department: <select name="dept"><option value="">ALL</option>{% for d in departments %}<option value="{{ d }}">{{ d }}</option>{% endfor %}</select></label>
+  <div><button type="submit">Open</button></div>
+</form>
+<p><a href="/">Back</a></p>
+</body></html>

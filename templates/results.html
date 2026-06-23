@@ -1,0 +1,77 @@
+﻿{% extends "base.html" %}
+{% set title = "Result Entry" %}
+{% block content %}
+<datalist id="resultSuggestions">{% for item in result_suggestions %}<option value="{{ item }}">{% endfor %}</datalist>
+<datalist id="remarkSuggestions">{% for item in remark_suggestions %}<option value="{{ item }}">{% endfor %}</datalist>
+<datalist id="morphologySuggestions">{% for item in morphology_suggestions %}<option value="{{ item }}">{% endfor %}</datalist>
+
+<div class="toolbar">
+  <form method="get" class="search">
+    <input name="lab_no" value="{{ lab_no }}" placeholder="Enter Lab No">
+    <button>Load Patient</button>
+  </form>
+</div>
+
+{% if patient %}
+<form method="post" action="/results/{{ patient.lab_no }}">
+  <div class="panel">
+    <div class="detail-head">
+      <div>
+        <div class="patient-name">{{ patient.title }} {{ patient.patient_name|upper }}</div>
+        <div class="muted">{{ patient.age }} {{ patient.age_type }} - {{ patient.gender }} - PID {{ patient.lab_no }}</div>
+      </div>
+      <button>Save Results</button>
+    </div>
+  </div>
+
+  {% for block in test_blocks %}
+  <div class="panel">
+    <div class="panel-title">{{ block.test_name }} <span class="muted">({{ block.department }})</span></div>
+    <table>
+      <thead><tr><th>Parameter</th><th>Result</th><th>Unit</th><th>Normal Value</th></tr></thead>
+      <tbody>
+      {% for param in block.params %}
+      <tr>
+        <td>{{ param.parameter }}</td>
+        <td><input list="resultSuggestions" name="result::{{ block.test_name }}::{{ param.parameter }}" value="{{ result_map.get(block.test_name ~ '||' ~ param.parameter, '') }}"></td>
+        <td>{{ param.unit }}</td>
+        <td>{{ param.reference_range }}</td>
+      </tr>
+      {% endfor %}
+      {% if block.test_name|upper == 'CBC' %}
+      <tr>
+        <td><b>Morphology</b></td>
+        <td colspan="3"><input list="morphologySuggestions" name="morphology::{{ block.test_name }}" value="{{ block.morphology or '' }}" placeholder="Optional morphology"></td>
+      </tr>
+      {% endif %}
+      <tr>
+        <td><b>Remarks</b></td>
+        <td colspan="3"><input list="remarkSuggestions" name="remarks::{{ block.test_name }}" value="{{ block.remarks or '' }}" placeholder="Optional remarks"></td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+  {% endfor %}
+</form>
+{% elif lab_no %}
+<div class="panel">No patient found for Lab No {{ lab_no }}.</div>
+{% endif %}
+
+<div class="panel">
+  <div class="panel-title">Recent Patients</div>
+  <table>
+    <thead><tr><th>Lab No</th><th>Patient</th><th>Booking</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+    {% for p in recent %}
+      <tr>
+        <td>{{ p.lab_no }}</td>
+        <td>{{ p.patient_name }}</td>
+        <td>{{ p.booking_date }}</td>
+        <td><span class="badge status-{{ (p.report_status or 'PENDING')|lower }}">{{ p.report_status or "PENDING" }}</span></td>
+        <td><a class="link" href="/results?lab_no={{ p.lab_no }}">Enter</a></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

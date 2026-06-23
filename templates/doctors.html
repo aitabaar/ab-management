@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% set title = "Doctors" %}
+{% block content %}
+<div class="panel">
+  <div class="detail-head">
+    <div>
+      <div class="panel-title">👨‍⚕️ Doctors Management</div>
+      <div class="muted">Manage referring doctors and pathologists</div>
+    </div>
+    <button onclick="document.getElementById('doctorForm').style.display=document.getElementById('doctorForm').style.display=='none'?'block':'none'" class="button">+ Add Doctor</button>
+  </div>
+
+  <!-- Add Doctor Form (Hidden) -->
+  <div id="doctorForm" style="display: none; margin-bottom: 20px; padding: 20px; background: #f8fafc; border-radius: 8px; border: 1px solid #ddd;">
+    <h3>Add New Doctor</h3>
+    <form method="post" action="/doctors" class="grid">
+      <label>Doctor Name<input name="name" required></label>
+      <label>Contact Number<input name="phone" type="tel"></label>
+      <label><button type="submit">Save Doctor</button></label>
+    </form>
+  </div>
+
+  <!-- Doctors Table -->
+  <table>
+    <thead><tr><th>Doctor Name</th><th>Contact</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      {% for d in doctors %}
+      <tr>
+        <td><strong>{{ d.name }}</strong></td>
+        <td>{{ d.phone or '-' }}</td>
+        <td><span class="badge">{{ d.status }}</span></td>
+        <td>
+          <form method="post" action="/doctors/{{ d.id }}/delete" onsubmit="return confirm('Remove this doctor?')" style="display: inline;">
+            <button class="small ghost" type="submit">Remove</button>
+          </form>
+        </td>
+      </tr>
+      {% else %}
+      <tr><td colspan="4" style="text-align: center; color: #999;">No doctors added yet</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

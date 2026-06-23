@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% set title = "Settings" %}
+{% block content %}
+<form method="post" class="panel">
+  <div class="panel-title">Lab Details</div>
+  <div class="grid">
+    <label>Lab Name<input name="lab_name" value="{{ settings.get('lab_name','') }}"></label>
+    <label>Subtitle<input name="lab_subtitle" value="{{ settings.get('lab_subtitle','') }}"></label>
+    <label>Address<input name="lab_address" value="{{ settings.get('lab_address','') }}"></label>
+    <label>Phone<input name="lab_phone" value="{{ settings.get('lab_phone','') }}"></label>
+  </div>
+  <div class="panel-title small">Report Print Settings</div>
+  <div class="grid">
+    <label>Header Space px<input name="report_header_space_px" type="number" value="{{ settings.get('report_header_space_px','145') }}"></label>
+    <label>Footer Space px<input name="report_footer_space_px" type="number" value="{{ settings.get('report_footer_space_px','190') }}"></label>
+    <label>Content Width px<input name="report_content_width_px" type="number" value="{{ settings.get('report_content_width_px','720') }}"></label>
+    <label>Logo Path<input name="report_logo_path" value="{{ settings.get('report_logo_path','') }}"></label>
+    <label>Header Image Path<input name="report_header_image_path" value="{{ settings.get('report_header_image_path','') }}"></label>
+    <label>Footer Image Path<input name="report_footer_image_path" value="{{ settings.get('report_footer_image_path','') }}"></label>
+  </div>
+  <br>
+  <label>Report Footer Note<input name="report_footer_note" value="{{ settings.get('report_footer_note','') }}"></label>
+  <br>
+  <button>Save Settings</button>
+</form>
+{% endblock %}

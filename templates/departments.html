@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set title = "Departments" %}
+{% block content %}
+<div class="panel">
+  <div class="panel-title">Add Department</div>
+  <form method="post" action="/departments/add" class="search">
+    <input name="department" placeholder="Department name" required>
+    <button>Add</button>
+  </form>
+</div>
+<div class="panel">
+  <div class="panel-title">Rename Department</div>
+  <form method="post" action="/departments/rename" class="grid">
+    <label>Current
+      <select name="old_department">
+        {% for d in departments %}<option value="{{ d.department }}">{{ d.department }}</option>{% endfor %}
+      </select>
+    </label>
+    <label>New Name
+      <input name="new_department" required>
+    </label>
+    <label>&nbsp;<button>Rename</button></label>
+  </form>
+</div>
+<div class="panel">
+  <table>
+    <thead><tr><th>Department</th><th>Tests</th></tr></thead>
+    <tbody>
+    {% for d in departments %}
+      <tr><td><b>{{ d.department or 'LABORATORY' }}</b></td><td>{{ d.count }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

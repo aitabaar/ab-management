@@ -41,3 +41,12 @@ Required environment variables:
 - `/reports` report list and print/export
 - `/billing` billing and exports
 - `/users` admin user management
+
+## Full Documentation
+
+- `PROJECT_DOCUMENTATION.md` - complete app overview and file guide
+- `NEW_LAPTOP_SETUP.md` - clone/run setup for another laptop
+- `DEPLOYMENT_GUIDE.md` - Render deployment settings and workflow
+- `DATABASE_GUIDE.md` - Supabase PostgreSQL and backup/restore notes
+- `ERROR_FIX_GUIDE.md` - common errors and fixes
+- `FUTURE_DEVELOPMENT_GUIDE.md` - how to continue development safely

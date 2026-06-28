@@ -273,45 +273,57 @@ def seed_default_data(cur):
 def ensure_database_schema():
     schema_path = BASE_DIR / "supabase_schema.sql"
     with db_conn() as con:
-        for statement in _schema_statements(schema_path.read_text(encoding="utf-8")):
-            con.execute(statement)
-        con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS ref_by text DEFAULT \'\'')
-        con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS panel_name text DEFAULT \'Self\'')
-        con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS status text DEFAULT \'PENDING\'')
-        con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS result_entered_at text')
-        con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS morphology text')
-        con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS remarks text')
-        con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_mode text DEFAULT \'AUTO\'')
-        con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_heading text DEFAULT \'\'')
-        con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_group text DEFAULT \'\'')
-        con.execute('ALTER TABLE report_logs ADD COLUMN IF NOT EXISTS department text')
-        con.execute('ALTER TABLE report_logs ADD COLUMN IF NOT EXISTS "user" text')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name text')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id bigint')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password boolean DEFAULT false')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at text')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at text')
-        con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at text')
-        for table in ["patients","patient_tests","test_results","panel_names","panel_test_rates","expenses","doctors","daily_patients","report_logs"]:
-            con.execute(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS hospital_id bigint')
-        con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS created_by bigint')
-        con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS updated_by bigint')
-        con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS deleted_by bigint')
-        con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS deleted_at text')
-        con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS created_by bigint')
-        con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS updated_by bigint')
-        con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS entered_by bigint')
-        con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS updated_by bigint')
-        con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS verified_by bigint')
-        con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS verified_at text')
-        con.execute('ALTER TABLE panel_names DROP CONSTRAINT IF EXISTS panel_names_name_key')
-        con.execute('ALTER TABLE panel_test_rates DROP CONSTRAINT IF EXISTS panel_test_rates_panel_name_test_name_key')
-        con.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_panel_names_hospital_name ON panel_names(hospital_id, name)')
-        con.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_panel_rates_hospital_panel_test ON panel_test_rates(hospital_id, panel_name, test_name)')
-        seed_default_data(con)
+        sql_text = schema_path.read_text(encoding="utf-8")
+        for statement in _schema_statements(sql_text):
+            try:
+                con.execute(statement)
+            except Exception as e:
+                print(f"Schema creation error (will continue): {e}")
+                # Continue even if one statement fails
         con.commit()
+        
+        # Add columns if they don't exist
+        try:
+            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS ref_by text DEFAULT \'\'')
+            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS panel_name text DEFAULT \'Self\'')
+            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS status text DEFAULT \'PENDING\'')
+            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS result_entered_at text')
+            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS morphology text')
+            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS remarks text')
+            con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_mode text DEFAULT \'AUTO\'')
+            con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_heading text DEFAULT \'\'')
+            con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_group text DEFAULT \'\'')
+            con.execute('ALTER TABLE report_logs ADD COLUMN IF NOT EXISTS department text')
+            con.execute('ALTER TABLE report_logs ADD COLUMN IF NOT EXISTS "user" text')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name text')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id bigint')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password boolean DEFAULT false')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at text')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at text')
+            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at text')
+            for table in ["patients","patient_tests","test_results","panel_names","panel_test_rates","expenses","doctors","daily_patients","report_logs"]:
+                con.execute(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS hospital_id bigint')
+            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS created_by bigint')
+            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS updated_by bigint')
+            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS deleted_by bigint')
+            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS deleted_at text')
+            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS created_by bigint')
+            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS updated_by bigint')
+            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS entered_by bigint')
+            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS updated_by bigint')
+            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS verified_by bigint')
+            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS verified_at text')
+            con.execute('ALTER TABLE panel_names DROP CONSTRAINT IF EXISTS panel_names_name_key')
+            con.execute('ALTER TABLE panel_test_rates DROP CONSTRAINT IF EXISTS panel_test_rates_panel_name_test_name_key')
+            con.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_panel_names_hospital_name ON panel_names(hospital_id, name)')
+            con.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_panel_rates_hospital_panel_test ON panel_test_rates(hospital_id, panel_name, test_name)')
+            seed_default_data(con)
+            con.commit()
+        except Exception as e:
+            print(f"Column/Index creation error: {e}")
+            con.commit()
 
 @app.on_event("startup")
 def start_schema_check():
@@ -558,7 +570,13 @@ def login(request:Request,username:str=Form(...),password:str=Form(...)):
     with db_conn() as con:
         row=con.execute("SELECT * FROM users WHERE username=?",(username,)).fetchone()
         ok = bool(row and row.get('is_active', True) is not False and (verify_password(password,row.get('password_hash')) or verify_password(password,row.get('password'))))
-        con.execute("INSERT INTO login_logs(user_id,username,success,ip_address,created_at) VALUES(?,?,?,?,?)",(row['id'] if row else None,username,ok,request.client.host if request.client else '',now_str()))
+        
+        # Try to log the login attempt, but don't fail if table doesn't exist
+        try:
+            con.execute("INSERT INTO login_logs(user_id,username,success,ip_address,created_at) VALUES(?,?,?,?,?)",(row['id'] if row else None,username,ok,request.client.host if request.client else '',now_str()))
+        except Exception as e:
+            print(f"Login log error (skipping): {e}")
+        
         if not ok:
             con.commit()
             return templates.TemplateResponse(request,'login.html',{'error':'Invalid username or password'})

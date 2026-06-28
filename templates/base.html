@@ -9,7 +9,7 @@
 </head>
 <body>
   <aside class="sidebar">
-    <div class="brand"><div class="brand-title">AB Management</div><div class="brand-sub">Laboratory System</div></div>
+    <div class="brand"><div class="brand-title">AB Management</div><div class="brand-sub">Management Platform</div></div>
     <nav>
       <a href="/dashboard">Dashboard</a>
       <a href="/patients">Patients</a>
@@ -34,6 +34,12 @@
   <main class="main">
     <header class="topbar"><div><div class="top-title">{{ title or self.h1() or "Dashboard" }}</div><div class="top-sub">Browser version connected to existing lab database</div></div><details class="user-menu"><summary>{{ user.username if user else "" }} - {{ user.role if user else "" }}</summary><a href="/my-account">My Account</a><a href="/logout">Logout</a></details></header>
     <section class="content">{% block content %}{% endblock %}</section>
+    <footer class="app-footer">
+      <div class="footer-info">
+        <p><strong>AB Management © 2024</strong> | Lab • Hospital • Restaurant • HR Management Systems</p>
+        <p><strong>Contact:</strong> Syed Ali Abidi (03351332350) | Syed Baqar Kazmi (03218990904)</p>
+      </div>
+    </footer>
   </main>
 </body>
 </html>

@@ -1,4 +1,58 @@
-{% extends "base.html" %}{% block h1 %}Users{% endblock %}{% block content %}
-<form method="post" action="/users/save" class="card"><h2>Add / Update User</h2><div class="formgrid"><input name="username" placeholder="Username" required><input name="password" placeholder="Password" required><select name="role"><option>Admin</option><option>Reception</option><option>Lab Technician</option></select><button class="btn green">Save User</button></div></form>
-<div class="card"><table><tr><th>Username</th><th>Role</th><th>Action</th></tr>{% for u in users %}<tr><td>{{ u.username }}</td><td>{{ u.role }}</td><td>{% if u.username not in ['syedali','admin'] %}<form method="post" action="/users/delete" onsubmit="return confirm('Delete user?')"><input type="hidden" name="username" value="{{ u.username }}"><button class="btn danger">Delete</button></form>{% endif %}</td></tr>{% endfor %}</table></div>
+{% extends "base.html" %}{% set title="User Management" %}{% block content %}
+<div class="panel">
+  <div class="panel-title">Create / Update User</div>
+  <form method="post" action="/users/save" class="grid">
+    <label>Username<input name="username" required></label>
+    <label>Full Name<input name="full_name"></label>
+    <label>Password / Reset Password<input name="password" type="password" placeholder="Leave blank when updating"></label>
+    <label>Role<select name="role">{% for r in roles %}<option>{{ r.name }}</option>{% endfor %}</select></label>
+    <label>Status<select name="is_active"><option value="ACTIVE">ACTIVE</option><option value="INACTIVE">INACTIVE</option></select></label>
+    <div>
+      <strong>Hospitals</strong>
+      {% for h in hospitals %}<label><input type="checkbox" name="hospital_ids" value="{{ h.id }}"> {{ h.name }}</label>{% endfor %}
+    </div>
+    <div>
+      <strong>Custom Extra Permissions</strong>
+      {% for p in permissions %}<label><input type="checkbox" name="permissions" value="{{ p.permission_key }}"> {{ p.label }}</label>{% endfor %}
+    </div>
+    <button class="btn green">Save User</button>
+  </form>
+</div>
+
+<div class="panel">
+  <div class="panel-title">Users</div>
+  <table>
+    <thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Status</th><th>Last Login</th><th>Actions</th></tr></thead>
+    <tbody>
+    {% for u in users %}
+      <tr>
+        <td>{{ u.username }}</td>
+        <td>{{ u.full_name or "" }}</td>
+        <td>{{ u.role }}</td>
+        <td>{{ "ACTIVE" if u.is_active else "INACTIVE" }}</td>
+        <td>{{ u.last_login_at or "" }}</td>
+        <td class="row-actions">
+          <form method="post" action="/users/status">
+            <input type="hidden" name="username" value="{{ u.username }}">
+            <input type="hidden" name="status" value="{{ 'INACTIVE' if u.is_active else 'ACTIVE' }}">
+            <button class="small">{{ 'Deactivate' if u.is_active else 'Activate' }}</button>
+          </form>
+          <form method="post" action="/users/reset-password">
+            <input type="hidden" name="username" value="{{ u.username }}">
+            <input name="new_password" type="password" placeholder="New password" required>
+            <input name="confirm_password" type="password" placeholder="Confirm" required>
+            <button class="small">Reset</button>
+          </form>
+          {% if u.username not in ['syedali','admin'] %}
+          <form method="post" action="/users/delete" onsubmit="return confirm('Delete user?')">
+            <input type="hidden" name="username" value="{{ u.username }}">
+            <button class="btn danger small">Delete</button>
+          </form>
+          {% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% endblock %}

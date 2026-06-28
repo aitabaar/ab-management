@@ -13,6 +13,9 @@
   <!-- Patient Information Section -->
   <div class="panel-title small">Patient Information</div>
   <div class="grid">
+    {% if hospitals %}
+    <label>Hospital<select name="hospital_id">{% for h in hospitals %}<option value="{{ h.id }}" {% if h.id == current_hospital_id %}selected{% endif %}>{{ h.name }}</option>{% endfor %}</select></label>
+    {% endif %}
     <label>Title<select name="title"><option>Mr.</option><option>Mrs.</option><option>Miss</option><option>Ms.</option><option>Baby</option><option>B/O</option><option>Dr.</option></select></label>
     <label>Patient Name<input name="patient_name" required></label>
     <label>Age<input name="age"></label>

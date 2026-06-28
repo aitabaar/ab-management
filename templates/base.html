@@ -24,13 +24,15 @@
       <a href="/departments">Departments</a>
       <a href="/panels">Panel Rates</a>
       <a href="/settings">Settings</a>
+      <a href="/hospitals">Hospitals</a>
+      <a href="/roles">Roles / Permissions</a>
       <a href="/users">Users</a>
       <a href="/backup">Backup</a>
     </nav>
     <a class="sidebar-logout" href="/logout">Logout</a>
   </aside>
   <main class="main">
-    <header class="topbar"><div><div class="top-title">{{ title or self.h1() or "Dashboard" }}</div><div class="top-sub">Browser version connected to existing lab database</div></div><details class="user-menu"><summary>{{ user.username if user else "" }} - {{ user.role if user else "" }}</summary><a href="/logout">Logout</a></details></header>
+    <header class="topbar"><div><div class="top-title">{{ title or self.h1() or "Dashboard" }}</div><div class="top-sub">Browser version connected to existing lab database</div></div><details class="user-menu"><summary>{{ user.username if user else "" }} - {{ user.role if user else "" }}</summary><a href="/my-account">My Account</a><a href="/logout">Logout</a></details></header>
     <section class="content">{% block content %}{% endblock %}</section>
   </main>
 </body>

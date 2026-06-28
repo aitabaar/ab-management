@@ -1,0 +1,20 @@
+{% extends "base.html" %}{% set title="Hospital Management" %}{% block content %}
+<div class="panel">
+  <div class="panel-title">Add Hospital / Branch</div>
+  <form method="post" action="/hospitals/save" class="grid">
+    <input type="hidden" name="hospital_id" value="0">
+    <label>Name<input name="name" required></label>
+    <label>Code<input name="code"></label>
+    <label>Phone<input name="phone"></label>
+    <label>Status<select name="status"><option>ACTIVE</option><option>INACTIVE</option></select></label>
+    <label>Address<input name="address"></label>
+    <button class="btn green">Save Hospital</button>
+  </form>
+</div>
+<div class="panel">
+  <table>
+    <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
+    <tbody>{% for h in hospitals %}<tr><td>{{ h.id }}</td><td>{{ h.name }}</td><td>{{ h.code or "" }}</td><td>{{ h.phone or "" }}</td><td>{{ h.status }}</td><td><form method="post" action="/hospitals/delete" onsubmit="return confirm('Deactivate/delete hospital?')"><input type="hidden" name="hospital_id" value="{{ h.id }}"><button class="btn danger small">Delete / Deactivate</button></form></td></tr>{% endfor %}</tbody>
+  </table>
+</div>
+{% endblock %}

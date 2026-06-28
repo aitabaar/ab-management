@@ -558,7 +558,7 @@ def login(request:Request,username:str=Form(...),password:str=Form(...)):
     username=username.strip()
     with db_conn() as con:
         row=con.execute("SELECT * FROM users WHERE username=?",(username,)).fetchone()
-        ok = bool(row and row['is_active'] is not False and (verify_password(password,row.get('password_hash')) or verify_password(password,row.get('password'))))
+        ok = bool(row and row.get('is_active', True) is not False and (verify_password(password,row.get('password_hash')) or verify_password(password,row.get('password'))))
         con.execute("INSERT INTO login_logs(user_id,username,success,ip_address,created_at) VALUES(?,?,?,?,?)",(row['id'] if row else None,username,ok,request.client.host if request.client else '',now_str()))
         if not ok:
             con.commit()

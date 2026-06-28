@@ -315,13 +315,12 @@ def ensure_database_schema():
 
 @app.on_event("startup")
 def start_schema_check():
-    def run():
-        try:
-            ensure_database_schema()
-            print("Database schema check completed.")
-        except Exception as exc:
-            print(f"Database schema check failed: {exc}")
-    threading.Thread(target=run, daemon=True).start()
+    try:
+        ensure_database_schema()
+        print("Database schema check completed successfully.")
+    except Exception as exc:
+        print(f"Database schema check failed: {exc}")
+        raise
 
 def hash_password(password):
     salt = secrets.token_hex(16)

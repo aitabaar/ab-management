@@ -2,28 +2,63 @@
 {% set title = "Dashboard" %}
 {% block content %}
 <div class="stats">
-  <div class="stat"><span>Today Patients</span><strong>{{ stats.today_patients }}</strong></div>
-  <div class="stat"><span>Total Patients</span><strong>{{ stats.total_patients }}</strong></div>
-  <div class="stat"><span>Today Revenue</span><strong>Rs. {{ stats.today_revenue|money }}</strong></div>
-  <div class="stat"><span>Pending Reports</span><strong>{{ stats.pending }}</strong></div>
+  <div class="stat">
+    <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+    <span>Today Patients</span>
+    <strong>{{ stats.today_patients }}</strong>
+  </div>
+  <div class="stat">
+    <div class="stat-icon"><i class="fas fa-users"></i></div>
+    <span>Total Patients</span>
+    <strong>{{ stats.total_patients }}</strong>
+  </div>
+  <div class="stat">
+    <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+    <span>Today Revenue</span>
+    <strong>Rs. {{ stats.today_revenue|money }}</strong>
+  </div>
+  <div class="stat">
+    <div class="stat-icon"><i class="fas fa-clock"></i></div>
+    <span>Pending Reports</span>
+    <strong>{{ stats.pending }}</strong>
+  </div>
 </div>
 
 <div class="panel">
-  <div class="panel-title">Recent Patients</div>
+  <div class="panel-title"><i class="fas fa-history" style="color:var(--accent-600)"></i> Recent Patients</div>
   <table>
-    <thead><tr><th>Lab No</th><th>Patient</th><th>Booking</th><th>Panel</th><th>Status</th><th></th></tr></thead>
+    <thead>
+      <tr>
+        <th>Lab No</th>
+        <th>Patient</th>
+        <th>Booking</th>
+        <th>Panel</th>
+        <th>Status</th>
+        <th></th>
+      </tr>
+    </thead>
     <tbody>
     {% for p in recent %}
       <tr>
-        <td>{{ p.lab_no }}</td>
+        <td><strong>{{ p.lab_no }}</strong></td>
         <td>{{ p.title }} {{ p.patient_name }}</td>
         <td>{{ p.booking_date }}</td>
         <td>{{ p.panel_name or "Self" }}</td>
-        <td><span class="badge">{{ p.payment_status }}</span></td>
-        <td><a class="link" href="/patients/{{ p.lab_no }}">Open</a></td>
+        <td><span class="badge status-{{ (p.payment_status or 'UNPAID')|lower }}">{{ p.payment_status }}</span></td>
+        <td><a class="link" href="/patients/{{ p.lab_no }}">Open <i class="fas fa-arrow-right" style="font-size:10px"></i></a></td>
       </tr>
     {% endfor %}
     </tbody>
   </table>
+</div>
+
+<div class="panel" style="background: linear-gradient(135deg, var(--accent-50) 0%, #fff 100%); border-color: var(--accent-400);">
+  <div class="panel-title" style="color: var(--accent-600);"><i class="fas fa-bolt"></i> Quick Actions</div>
+  <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+    <a class="button" href="/patients/new"><i class="fas fa-user-plus"></i> New Patient</a>
+    <a class="button ghost" href="/results"><i class="fas fa-flask"></i> Enter Results</a>
+    <a class="button ghost" href="/billing"><i class="fas fa-credit-card"></i> Billing</a>
+    <a class="button ghost" href="/reports"><i class="fas fa-file-medical"></i> Reports</a>
+  </div>
 </div>
 {% endblock %}

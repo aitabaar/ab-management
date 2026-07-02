@@ -3,36 +3,81 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ title or "AB Management Web" }}</title>
+  <title>{{ title or "Hype Management" }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/static/app.css">
-  <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
+  <!-- Hidden checkbox for hamburger toggle -->
+  <input type="checkbox" id="sidebarToggle">
+  <label for="sidebarToggle" class="sidebar-overlay"></label>
+
   <aside class="sidebar">
-    <div class="brand"><div class="brand-title">AB Management</div><div class="brand-sub">Management Platform</div></div>
+    <div class="brand">
+      <img src="/static/images/hype-management-logo.png" alt="Hype Management Logo" class="brand-logo">
+      <div class="brand-text">
+        {% set branding = get_current_hospital_branding(request) %}
+        <div class="brand-title">{{ branding.name if branding else 'Hype Management' }}</div>
+        <div class="brand-sub">{{ branding.tagline if branding else 'Empowering Businesses with Smart Technology' }}</div>
+      </div>
+    </div>
     <nav>
-      <a href="/dashboard">Dashboard</a>
-      <a href="/patients">Patients</a>
-      <a href="/patients/new">New Patient</a>
-      <a href="/results">Result Entry</a>
-      <a href="/pending-ready">Pending / Ready</a>
-      <a href="/reports">Reports</a>
-      <a href="/report-logs">Report Logs</a>
-      <a href="/slips">Slips</a>
-      <a href="/billing">Billing</a>
-      <a href="/tests">Test Master</a>
-      <a href="/departments">Departments</a>
-      <a href="/panels">Panel Rates</a>
-      <a href="/settings">Settings</a>
-      <a href="/hospitals">Hospitals</a>
-      <a href="/roles">Roles / Permissions</a>
-      <a href="/users">Users</a>
-      <a href="/backup">Backup</a>
+      <div class="nav-section">Main</div>
+      <a href="/dashboard"><i class="fas fa-th-large"></i> Dashboard</a>
+      <a href="/patients"><i class="fas fa-users"></i> Patients</a>
+      <a href="/patients/new"><i class="fas fa-user-plus"></i> New Patient</a>
+
+      <div class="nav-section">Lab Work</div>
+      <a href="/results"><i class="fas fa-flask"></i> Result Entry</a>
+      <a href="/pending-ready"><i class="fas fa-clipboard-list"></i> Pending / Ready</a>
+      <a href="/reports"><i class="fas fa-file-medical"></i> Reports</a>
+      <a href="/report-logs"><i class="fas fa-history"></i> Report Logs</a>
+      <a href="/slips"><i class="fas fa-receipt"></i> Slips</a>
+
+      <div class="nav-section">Finance</div>
+      <a href="/billing"><i class="fas fa-credit-card"></i> Billing</a>
+      <a href="/expenses"><i class="fas fa-money-bill-wave"></i> Expenses</a>
+      <a href="/daily-patients"><i class="fas fa-calendar-day"></i> Daily Patients</a>
+      <a href="/cash-report"><i class="fas fa-chart-line"></i> Cash Report</a>
+
+      <div class="nav-section">Administration</div>
+      <a href="/tests"><i class="fas fa-vial"></i> Test Master</a>
+      <a href="/departments"><i class="fas fa-building"></i> Departments</a>
+      <a href="/panels"><i class="fas fa-tags"></i> Panel Rates</a>
+      <a href="/settings"><i class="fas fa-cog"></i> Settings</a>
+      <a href="/hospitals"><i class="fas fa-hospital"></i> Hospitals</a>
+      <a href="/roles"><i class="fas fa-shield-alt"></i> Roles / Permissions</a>
+      <a href="/users"><i class="fas fa-user-cog"></i> Users</a>
+      <a href="/doctors"><i class="fas fa-user-md"></i> Doctors</a>
+      <a href="/result-templates"><i class="fas fa-file-alt"></i> Result Templates</a>
+      <a href="/backup"><i class="fas fa-database"></i> Backup</a>
     </nav>
-    <a class="sidebar-logout" href="/logout">Logout</a>
+    <a class="sidebar-logout" href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
   </aside>
+
   <main class="main">
-    <header class="topbar"><div><div class="top-title">{{ title or self.h1() or "Dashboard" }}</div><div class="top-sub">Browser version connected to existing lab database</div></div><details class="user-menu"><summary>{{ user.username if user else "" }} - {{ user.role if user else "" }}</summary><a href="/my-account">My Account</a><a href="/logout">Logout</a></details></header>
+    <header class="topbar">
+      <div class="topbar-left">
+        <label for="sidebarToggle" class="hamburger" aria-label="Toggle sidebar">
+          <i class="fas fa-bars"></i>
+        </label>
+        <div>
+          <div class="top-title">{{ title or "Dashboard" }}</div>
+          {% set branding = get_current_hospital_branding(request) %}
+          <div class="top-sub">{{ branding.tagline if branding else 'Empowering Businesses with Smart Technology' }}</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <details class="user-menu">
+          <summary>
+            <span class="user-avatar">{{ user.username[:1]|upper if user else "U" }}</span>
+            {{ user.username if user else "User" }}
+          </summary>
+          <a href="/my-account"><i class="fas fa-user"></i> My Account</a>
+          <a href="/logout"><i class="fas fa-sign-out-alt"></i> Logout</a>
+        </details>
+      </div>
+    </header>
     <section class="content">{% block content %}{% endblock %}</section>
   </main>
 </body>

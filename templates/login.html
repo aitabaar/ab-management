@@ -3,19 +3,31 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Login · AB Management</title>
+  <title>Login · {% set branding = get_current_hospital_branding(request) %}{{ branding.name if branding else 'Hype Management' }}</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body class="login-body">
   <form class="login-card" method="post" action="/login">
-    <div class="login-title">AB Management</div>
-    <div class="login-sub">Professional Management Platform</div>
-    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
-    <label>Username</label>
-    <input name="username" autocomplete="username" required autofocus>
-    <label>Password</label>
-    <input name="password" type="password" autocomplete="current-password" required>
-    <button type="submit">Login</button>
+    <img src="/static/images/hype-management-logo.png" alt="Hype Management Logo" class="login-logo">
+    <div class="login-title">Welcome Back</div>
+    <div class="login-sub">Sign in to Hype Management Platform</div>
+    {% if error %}
+    <div class="alert">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ error }}
+    </div>
+    {% endif %}
+    <label>
+      <span><i class="fas fa-user" style="margin-right:4px"></i> Username</span>
+      <input name="username" autocomplete="username" required autofocus placeholder="Enter your username">
+    </label>
+    <label>
+      <span><i class="fas fa-lock" style="margin-right:4px"></i> Password</span>
+      <input name="password" type="password" autocomplete="current-password" required placeholder="Enter your password">
+    </label>
+    <button type="submit"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+    <div class="login-footer"><a href="/"><i class="fas fa-arrow-left"></i> Back to Home</a></div>
   </form>
 </body>
 </html>

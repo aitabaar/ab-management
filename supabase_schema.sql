@@ -24,7 +24,22 @@ create table if not exists hospitals (
   phone text,
   status text default 'ACTIVE',
   created_at text,
-  updated_at text
+  updated_at text,
+  tagline text default '',
+  city text default '',
+  phone2 text default '',
+  email text default '',
+  website text default '',
+  ntn text default '',
+  license_no text default '',
+  logo_path text default '',
+  report_footer text default 'Thank you for choosing our laboratory.',
+  slip_footer text default 'Thank you for choosing our laboratory.',
+  report_header_image_path text default '',
+  report_footer_image_path text default '',
+  report_header_enabled boolean default true,
+  report_footer_enabled boolean default true,
+  report_print_mode text default 'WITH_HEADER_FOOTER'
 );
 
 create table if not exists roles (

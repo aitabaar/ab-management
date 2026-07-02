@@ -24,6 +24,29 @@
     <a class="button ghost" href="/results?lab_no={{ patient.lab_no }}">Edit Results</a>
     <a class="button ghost" href="/patients/{{ patient.lab_no }}">Back</a>
   </div>
+  {% if branding.logo_path %}
+  <div style="text-align:center; margin-bottom:12px;">
+    <img src="{{ branding.logo_path }}" style="max-height:70px; max-width:220px; object-fit:contain;" alt="Logo">
+  </div>
+  {% endif %}
+  {% if branding.name %}
+  <div style="text-align:center; font-size:18px; font-weight:800; color:#1e293b; margin-bottom:4px;">{{ branding.name }}</div>
+  {% endif %}
+  {% if branding.tagline %}
+  <div style="text-align:center; font-size:11px; color:#64748b; margin-bottom:6px;">{{ branding.tagline }}</div>
+  {% endif %}
+  {% if branding.address or branding.phone %}
+  <div style="text-align:center; font-size:10px; color:#64748b; margin-bottom:2px;">
+    {{ branding.address }}{% if branding.city %}, {{ branding.city }}{% endif %}
+  </div>
+  <div style="text-align:center; font-size:10px; color:#64748b; margin-bottom:2px;">
+    {% if branding.phone %}Tel: {{ branding.phone }}{% endif %}
+    {% if branding.phone2 %} / {{ branding.phone2 }}{% endif %}
+  </div>
+  {% if branding.email %}<div style="text-align:center; font-size:10px; color:#64748b; margin-bottom:2px;">{{ branding.email }}</div>{% endif %}
+  {% if branding.website %}<div style="text-align:center; font-size:10px; color:#64748b; margin-bottom:8px;">{{ branding.website }}</div>{% endif %}
+  {% endif %}
+  <div style="border-bottom:2px solid #1e293b; margin:10px 0;"></div>
   {% if report_html %}
     {{ report_html|safe }}
   {% else %}

@@ -3,26 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Check Lab Report</title>
+  <title>Check Lab Report · Hype Management</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/static/app.css">
 </head>
 <body class="print-body">
   <div class="public-report-shell no-print">
-    <div>
-      <h1>Check Lab Report</h1>
-      <p>Enter your lab number to view the report.</p>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px;">
+      <a href="/" style="color:var(--accent-600); text-decoration:none; font-size:20px;"><i class="fas fa-arrow-left"></i></a>
+      <div>
+        <h1>Check Lab Report</h1>
+        <p>Enter your lab number to view the report online.</p>
+      </div>
     </div>
     <form method="get" action="/public-report" class="public-report-search">
       <input name="lab_no" value="{{ lab_no }}" placeholder="Lab No e.g. 0004" required autofocus>
-      <button>Search</button>
+      <button><i class="fas fa-search"></i> Search</button>
     </form>
-    {% if error %}<div class="alert">{{ error }}</div>{% endif %}
+    {% if error %}
+    <div class="alert" style="margin-top:12px;">
+      <i class="fas fa-exclamation-circle"></i>
+      {{ error }}
+    </div>
+    {% endif %}
   </div>
   {% if patient and report_html %}
     <div class="public-report-meta no-print">
-      <strong>{{ patient.title }} {{ patient.patient_name|upper }}</strong>
-      <span>PID: {{ patient.lab_no }}</span>
-      <button onclick="window.print()">Print</button>
+      <div style="display:flex; align-items:center; gap:12px;">
+        <div style="width:40px; height:40px; border-radius:50%; background:var(--accent-600); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700;">{{ patient.patient_name[:1]|upper }}</div>
+        <div>
+          <strong>{{ patient.title }} {{ patient.patient_name|upper }}</strong>
+          <div style="color:var(--text-muted); font-size:12px;">PID: {{ patient.lab_no }}</div>
+        </div>
+      </div>
+      <button onclick="window.print()"><i class="fas fa-print"></i> Print</button>
     </div>
     {{ report_html|safe }}
   {% endif %}

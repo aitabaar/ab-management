@@ -13,8 +13,8 @@
 </div>
 <div class="panel">
   <table>
-    <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
-    <tbody>{% for h in hospitals %}<tr><td>{{ h.id }}</td><td>{{ h.name }}</td><td>{{ h.code or "" }}</td><td>{{ h.phone or "" }}</td><td>{{ h.status }}</td><td><form method="post" action="/hospitals/delete" onsubmit="return confirm('Deactivate/delete hospital?')"><input type="hidden" name="hospital_id" value="{{ h.id }}"><button class="btn danger small">Delete / Deactivate</button></form></td></tr>{% endfor %}</tbody>
+    <thead><tr><th>ID</th><th>Name</th><th>Code</th><th>Phone</th><th>Status</th><th>Branding</th><th>Action</th></tr></thead>
+    <tbody>{% for h in hospitals %}<tr><td>{{ h.id }}</td><td>{{ h.name }}</td><td>{{ h.code or "" }}</td><td>{{ h.phone or "" }}</td><td>{{ h.status }}</td><td><a class="button small" href="/hospitals/{{ h.id }}/branding"><i class="fas fa-palette"></i> Branding</a></td><td><form method="post" action="/hospitals/delete" onsubmit="return confirm('Deactivate/delete hospital?')"><input type="hidden" name="hospital_id" value="{{ h.id }}"><button class="btn danger small">Delete / Deactivate</button></form></td></tr>{% endfor %}</tbody>
   </table>
 </div>
 {% endblock %}

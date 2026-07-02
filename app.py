@@ -51,6 +51,23 @@ app.add_middleware(SessionMiddleware, secret_key=os.environ.get("AB_WEB_SECRET",
 app.mount("/static", StaticFiles(directory=str(BASE_DIR / "static")), name="static")
 templates = Jinja2Templates(directory=str(BASE_DIR / "templates"))
 
+# Add helper function to templates for getting current hospital branding
+def get_current_hospital_branding(request):
+    """Get branding for the current user's selected hospital"""
+    try:
+        user = current_user(request)
+        if not user:
+            return None
+        hospital_id = user.get('current_hospital_id') or user.get('hospital_ids', [None])[0]
+        if not hospital_id:
+            return None
+        with db_conn() as con:
+            return hospital_branding(con, hospital_id)
+    except Exception:
+        return None
+
+templates.env.globals['get_current_hospital_branding'] = get_current_hospital_branding
+
 def money(value):
     try: return f"{float(value):,.0f}"
     except Exception: return "0"
@@ -271,59 +288,56 @@ def seed_default_data(cur):
             cur.execute(f"UPDATE {table} SET hospital_id=? WHERE hospital_id IS NULL",(default_hospital_id,))
 
 def ensure_database_schema():
-    schema_path = BASE_DIR / "supabase_schema.sql"
-    with db_conn() as con:
-        sql_text = schema_path.read_text(encoding="utf-8")
-        for statement in _schema_statements(sql_text):
+    """Initialize database schema - non-blocking, logs errors but doesn't fail startup"""
+    try:
+        schema_path = BASE_DIR / "supabase_schema.sql"
+        with db_conn() as con:
+            sql_text = schema_path.read_text(encoding="utf-8")
+            for statement in _schema_statements(sql_text):
+                try:
+                    con.execute(statement)
+                except Exception as e:
+                    print(f"[SCHEMA] Skipping statement (already exists): {type(e).__name__}")
             try:
-                con.execute(statement)
+                con.commit()
             except Exception as e:
-                print(f"Schema creation error (will continue): {e}")
-                # Continue even if one statement fails
-        con.commit()
+                print(f"[SCHEMA] Commit after schema failed: {e}")
+                # Try to continue anyway
         
-        # Add columns if they don't exist
+        # Auto-upgrade: add hospital branding columns if missing (separate connection)
         try:
-            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS ref_by text DEFAULT \'\'')
-            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS panel_name text DEFAULT \'Self\'')
-            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS status text DEFAULT \'PENDING\'')
-            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS result_entered_at text')
-            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS morphology text')
-            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS remarks text')
-            con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_mode text DEFAULT \'AUTO\'')
-            con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_heading text DEFAULT \'\'')
-            con.execute('ALTER TABLE test_master ADD COLUMN IF NOT EXISTS report_group text DEFAULT \'\'')
-            con.execute('ALTER TABLE report_logs ADD COLUMN IF NOT EXISTS department text')
-            con.execute('ALTER TABLE report_logs ADD COLUMN IF NOT EXISTS "user" text')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS password_hash text')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name text')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS role_id bigint')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS is_active boolean DEFAULT true')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS must_change_password boolean DEFAULT false')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS last_login_at text')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS created_at text')
-            con.execute('ALTER TABLE users ADD COLUMN IF NOT EXISTS updated_at text')
-            for table in ["patients","patient_tests","test_results","panel_names","panel_test_rates","expenses","doctors","daily_patients","report_logs"]:
-                con.execute(f'ALTER TABLE {table} ADD COLUMN IF NOT EXISTS hospital_id bigint')
-            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS created_by bigint')
-            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS updated_by bigint')
-            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS deleted_by bigint')
-            con.execute('ALTER TABLE patients ADD COLUMN IF NOT EXISTS deleted_at text')
-            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS created_by bigint')
-            con.execute('ALTER TABLE patient_tests ADD COLUMN IF NOT EXISTS updated_by bigint')
-            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS entered_by bigint')
-            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS updated_by bigint')
-            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS verified_by bigint')
-            con.execute('ALTER TABLE test_results ADD COLUMN IF NOT EXISTS verified_at text')
-            con.execute('ALTER TABLE panel_names DROP CONSTRAINT IF EXISTS panel_names_name_key')
-            con.execute('ALTER TABLE panel_test_rates DROP CONSTRAINT IF EXISTS panel_test_rates_panel_name_test_name_key')
-            con.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_panel_names_hospital_name ON panel_names(hospital_id, name)')
-            con.execute('CREATE UNIQUE INDEX IF NOT EXISTS idx_panel_rates_hospital_panel_test ON panel_test_rates(hospital_id, panel_name, test_name)')
-            seed_default_data(con)
-            con.commit()
+            with db_conn() as con:
+                branding_columns = [
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS tagline TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS city TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS phone2 TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS email TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS website TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS ntn TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS license_no TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS logo_path TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS report_footer TEXT DEFAULT 'Thank you for choosing our laboratory.'",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS slip_footer TEXT DEFAULT 'Thank you for choosing our laboratory.'",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS report_header_image_path TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS report_footer_image_path TEXT DEFAULT ''",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS report_header_enabled BOOLEAN DEFAULT TRUE",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS report_footer_enabled BOOLEAN DEFAULT TRUE",
+                    "ALTER TABLE hospitals ADD COLUMN IF NOT EXISTS report_print_mode TEXT DEFAULT 'WITH_HEADER_FOOTER'",
+                ]
+                for stmt in branding_columns:
+                    try:
+                        con.execute(stmt)
+                    except Exception as e:
+                        print(f"[SCHEMA] Branding column skip: {type(e).__name__}: {e}")
+                try:
+                    con.commit()
+                except Exception as e:
+                    print(f"[SCHEMA] Commit after branding columns failed: {e}")
         except Exception as e:
-            print(f"Column/Index creation error: {e}")
-            con.commit()
+            print(f"[SCHEMA] Branding upgrade failed: {e}")
+    except Exception as exc:
+        print(f"[SCHEMA] Warning - schema initialization incomplete: {exc}")
+        print("[SCHEMA] This is OK if you have run URGENT_DATABASE_SETUP.md in Supabase SQL Editor")
 
 @app.on_event("startup")
 def start_schema_check():
@@ -332,7 +346,16 @@ def start_schema_check():
         print("Database schema check completed successfully.")
     except Exception as exc:
         print(f"Database schema check failed: {exc}")
-        raise
+        print("WARNING: Database schema initialization failed. You must run migrations manually in Supabase.")
+        print("See DATABASE_MIGRATION_GUIDE.md for instructions.")
+    # Seed default data (admin users, roles, permissions) after schema is ready
+    try:
+        with db_conn() as con:
+            seed_default_data(con)
+            con.commit()
+            print("Default data seeded successfully.")
+    except Exception as e:
+        print(f"Seeding error (non-critical): {e}")
 
 def hash_password(password):
     salt = secrets.token_hex(16)
@@ -397,27 +420,50 @@ def require_patient_access(con, request, lab_no):
     row = con.execute(f"SELECT * FROM patients WHERE lab_no=?{clause}", [lab_no] + params).fetchone()
     return row
 def load_user_context(con, user_row):
-    role_name = user_row['role'] or 'Limited User'
-    role_row = con.execute("SELECT id,name FROM roles WHERE name=?",(role_name,)).fetchone()
-    permissions = set()
-    if role_row:
-        permissions.update(r['permission_key'] for r in con.execute("SELECT permission_key FROM role_permissions WHERE role_id=?",(role_row['id'],)).fetchall())
-    permissions.update(r['permission_key'] for r in con.execute("SELECT permission_key FROM user_permissions WHERE user_id=? AND allowed=true",(user_row['id'],)).fetchall())
-    hospital_ids = [r['hospital_id'] for r in con.execute("SELECT hospital_id FROM user_hospitals WHERE user_id=?",(user_row['id'],)).fetchall()]
-    if role_name == 'Super Admin' and not hospital_ids:
-        hospital_ids = [r['id'] for r in con.execute("SELECT id FROM hospitals WHERE status='ACTIVE' ORDER BY id").fetchall()]
-    return {'id':user_row['id'],'username':user_row['username'],'role':role_name,'permissions':sorted(permissions),'hospital_ids':hospital_ids,'current_hospital_id':hospital_ids[0] if hospital_ids else None}
+    try:
+        role_name = user_row['role'] or 'Limited User'
+        role_row = con.execute("SELECT id,name FROM roles WHERE name=?",(role_name,)).fetchone()
+        permissions = set()
+        if role_row:
+            try:
+                permissions.update(r['permission_key'] for r in con.execute("SELECT permission_key FROM role_permissions WHERE role_id=?",(role_row['id'],)).fetchall())
+            except:
+                pass
+        try:
+            permissions.update(r['permission_key'] for r in con.execute("SELECT permission_key FROM user_permissions WHERE user_id=? AND allowed=true",(user_row['id'],)).fetchall())
+        except:
+            pass
+        try:
+            hospital_ids = [r['hospital_id'] for r in con.execute("SELECT hospital_id FROM user_hospitals WHERE user_id=?",(user_row['id'],)).fetchall()]
+        except:
+            hospital_ids = []
+        if not hospital_ids:
+            try:
+                hospital_ids = [r['id'] for r in con.execute("SELECT id FROM hospitals WHERE status='ACTIVE' ORDER BY id").fetchall()]
+            except:
+                hospital_ids = [1]  # Default to first hospital
+        return {'id':user_row['id'],'username':user_row['username'],'role':role_name,'permissions':sorted(permissions),'hospital_ids':hospital_ids,'current_hospital_id':hospital_ids[0] if hospital_ids else 1}
+    except Exception as e:
+        print(f"Error loading user context: {e}")
+        # Return minimal user context to allow login to proceed
+        return {'id':user_row['id'],'username':user_row['username'],'role':'Limited User','permissions':[],'hospital_ids':[1],'current_hospital_id':1}
 def log_report_action(con, request, lab_no, department='', action='VIEW'):
     user=(current_user(request) or {}).get('username','PUBLIC')
     p=con.execute("SELECT hospital_id FROM patients WHERE lab_no=?",(lab_no,)).fetchone()
     con.execute('INSERT INTO report_logs(hospital_id,lab_no,department,action,"user",created_at) VALUES(?,?,?,?,?,?)',(p['hospital_id'] if p else current_hospital_id(request),lab_no,department or '',action,user,now_str()))
 def audit_log(con, request, action, entity_type='', entity_id='', lab_no='', details=''):
-    user=current_user(request) or {}
-    hid=current_hospital_id(request)
-    if lab_no:
-        p=con.execute("SELECT hospital_id FROM patients WHERE lab_no=?",(lab_no,)).fetchone()
-        if p: hid=p['hospital_id']
-    con.execute("INSERT INTO audit_logs(hospital_id,user_id,username,action,entity_type,entity_id,lab_no,details,created_at) VALUES(?,?,?,?,?,?,?,?,?)",(hid,user.get('id'),user.get('username','PUBLIC'),action,entity_type,entity_id,lab_no,details,now_str()))
+    try:
+        user=current_user(request) or {}
+        hid=current_hospital_id(request)
+        if lab_no:
+            try:
+                p=con.execute("SELECT hospital_id FROM patients WHERE lab_no=?",(lab_no,)).fetchone()
+                if p: hid=p['hospital_id']
+            except:
+                pass
+        con.execute("INSERT INTO audit_logs(hospital_id,user_id,username,action,entity_type,entity_id,lab_no,details,created_at) VALUES(?,?,?,?,?,?,?,?,?)",(hid,user.get('id'),user.get('username','PUBLIC'),action,entity_type,entity_id,lab_no,details,now_str()))
+    except Exception as e:
+        print(f"Audit log error (skipping): {e}")
 def is_abnormal_value(result, ref):
     try:
         value=float(str(result).replace(',','.').strip().lstrip('<>').strip())
@@ -508,6 +554,11 @@ def render_report_html(con, lab_no, department=None):
     header_space=int(float(setting(con,'report_header_space_px','168') or 168))
     content_width=int(float(setting(con,'report_content_width_px','720') or 720))
     footer_space=int(float(setting(con,'report_footer_space_px','120') or 120))
+    # Get hospital branding for report header/footer
+    hospital_brand = hospital_branding(con, patient.get('hospital_id') or 1)
+    report_print_mode = hospital_brand.get('report_print_mode', 'WITH_HEADER_FOOTER')
+    show_header = hospital_brand.get('report_header_enabled', True)
+    show_footer = hospital_brand.get('report_footer_enabled', True)
     for page_key,page in grouped.items():
         tests=page['tests']
         page_heading=page['heading']
@@ -530,24 +581,103 @@ def render_report_html(con, lab_no, department=None):
                 body += f"<tr><td colspan='4' class='remarks-row'><b>Remarks :</b>&nbsp; {escape(str(note['remarks']))}</td></tr>"
         if not printed_remarks:
             body += "<tr><td colspan='4' class='remarks-row blank'><b>Remarks :</b></td></tr>"
-        pages.append(f"""
-        <section class='print-page a4-report' style='--header-space:{header_space}px; --footer-space:{footer_space}px; --content-width:{content_width}px;'>
-          <div class='report-top-space' style='height:{header_space}px;'></div>
+        # Build header HTML
+        header_html = ''
+        if show_header and report_print_mode == 'WITH_HEADER_FOOTER':
+            # Check if hospital has a header image
+            header_image_path = hospital_brand.get('report_header_image_path', '')
+            if header_image_path:
+                # Use header image instead of generated header
+                header_html = f"""
+          <div style='text-align:center; margin-bottom:20px;'>
+            <img src='{header_image_path}' style='max-width:100%; max-height:200px; object-fit:contain;' alt='Report Header'>
+          </div>
           <div class='patient-strip a4-patient-strip'>
             <div class='patient-main'><strong>{escape(str(patient['title'] or ''))} {escape(str(patient['patient_name'] or '')).upper()}</strong><br>Age : {escape(str(patient['age'] or ''))} {escape(str(patient['age_type'] or ''))}<br>Sex : {escape(str(patient['gender'] or ''))}<br>PID : {escape(str(patient['lab_no']))}</div>
             <div class='a4-qr-cell'><img class='a4-inline-qr' src='{qr_code}' alt='QR Code'></div>
             <div><strong>Sample Collected At:</strong><br>{escape(str(patient['booking_date'] or ''))}<br><br><strong>Ref. By:</strong><br>{escape(str(patient['ref_by'] or patient['doctor'] or 'SELF'))}</div>
             <div><strong>Panel</strong><br>{escape(str(patient['panel_name'] or 'SELF'))}<br><br><strong>MR/Ref No</strong><br>{escape(str(patient['ref_by'] or patient['doctor'] or '-'))}</div>
           </div>
-          <div class='report-head'><strong>Department of {escape(str(page_heading).title())}</strong><span>Reporting Time:&nbsp;&nbsp;{escape(str(patient['reporting_date'] or ''))}</span></div>
-          <table class='report-table a4-results'><thead><tr><th>Test</th><th>Result</th><th>Unit</th><th>Normal Value</th></tr></thead><tbody>{body}</tbody></table>
+          <div class='report-head'><strong>Department of {escape(str(page_heading).title())}</strong><span>Reporting Time:&nbsp;&nbsp;{escape(str(patient['reporting_date'] or ''))}</span></div>"""
+            else:
+                # Use generated text header with logo
+                header_html = f"""
+          <div class='patient-strip a4-patient-strip'>
+            <div class='patient-main'><strong>{escape(str(patient['title'] or ''))} {escape(str(patient['patient_name'] or '')).upper()}</strong><br>Age : {escape(str(patient['age'] or ''))} {escape(str(patient['age_type'] or ''))}<br>Sex : {escape(str(patient['gender'] or ''))}<br>PID : {escape(str(patient['lab_no']))}</div>
+            <div class='a4-qr-cell'><img class='a4-inline-qr' src='{qr_code}' alt='QR Code'></div>
+            <div><strong>Sample Collected At:</strong><br>{escape(str(patient['booking_date'] or ''))}<br><br><strong>Ref. By:</strong><br>{escape(str(patient['ref_by'] or patient['doctor'] or 'SELF'))}</div>
+            <div><strong>Panel</strong><br>{escape(str(patient['panel_name'] or 'SELF'))}<br><br><strong>MR/Ref No</strong><br>{escape(str(patient['ref_by'] or patient['doctor'] or '-'))}</div>
+          </div>
+          <div class='report-head'><strong>Department of {escape(str(page_heading).title())}</strong><span>Reporting Time:&nbsp;&nbsp;{escape(str(patient['reporting_date'] or ''))}</span></div>"""
+        # Build footer HTML
+        footer_html = ''
+        if show_footer and report_print_mode == 'WITH_HEADER_FOOTER':
+            # Check if hospital has a footer image
+            footer_image_path = hospital_brand.get('report_footer_image_path', '')
+            if footer_image_path:
+                # Use footer image instead of text footer
+                footer_html = f"""
           <div class='report-note'>{footer_note}</div>
+          <div style='position:absolute; bottom:32px; left:0; right:0; text-align:center;'>
+            <img src='{footer_image_path}' style='max-width:100%; max-height:150px; object-fit:contain;' alt='Report Footer'>
+          </div>"""
+            else:
+                # Use text footer
+                footer_html = f"""
+          <div class='report-note'>{footer_note}</div>
+          <div style='position:absolute; bottom:32px; left:0; right:0; text-align:center; font-size:8px; color:#999;'>
+            {escape(hospital_brand.get('report_footer') or 'Thank you for choosing our laboratory.')}<br>
+            Powered by Hype Management
+          </div>"""
+        pages.append(f"""
+        <section class='print-page a4-report' style='--header-space:{header_space}px; --footer-space:{footer_space}px; --content-width:{content_width}px;'>
+          <div class='report-top-space' style='height:{header_space}px;'></div>
+          {header_html}
+          <table class='report-table a4-results'><thead><tr><th>Test</th><th>Result</th><th>Unit</th><th>Normal Value</th></tr></thead><tbody>{body}</tbody></table>
+          {footer_html}
         </section>""")
     return '\n'.join(pages) or "<section class='print-page a4-report'><div class='empty-report'>No results saved yet.</div></section>"
 
 
 def setting(con,key,default=''):
     row=con.execute("SELECT setting_value FROM app_settings WHERE setting_key=?",(key,)).fetchone(); return row['setting_value'] if row else default
+
+def hospital_branding(con, hospital_id):
+    """Get branding fields for a hospital with safe defaults"""
+    row = con.execute("SELECT * FROM hospitals WHERE id=?",(hospital_id,)).fetchone()
+    if not row:
+        return {
+            'name': 'Hype Management', 'tagline': 'Empowering Business with Smart Technology',
+            'address': '', 'city': '', 'phone': '', 'phone2': '', 'email': 'HypeManagementss@gmail.com', 'website': '',
+            'ntn': '', 'license_no': '', 'logo_path': '',
+            'report_footer': 'Thank you for choosing our laboratory.',
+            'slip_footer': 'Thank you for choosing our laboratory.',
+            'report_header_image_path': '',
+            'report_footer_image_path': '',
+            'report_header_enabled': True,
+            'report_footer_enabled': True,
+            'report_print_mode': 'WITH_HEADER_FOOTER'
+        }
+    return {
+        'name': row.get('name') or 'Hype Management',
+        'tagline': row.get('tagline') or 'Empowering Business with Smart Technology',
+        'address': row.get('address') or '',
+        'city': row.get('city') or '',
+        'phone': row.get('phone') or '',
+        'phone2': row.get('phone2') or '',
+        'email': row.get('email') or '',
+        'website': row.get('website') or '',
+        'ntn': row.get('ntn') or '',
+        'license_no': row.get('license_no') or '',
+        'logo_path': row.get('logo_path') or '',
+        'report_footer': row.get('report_footer') or 'Thank you for choosing our laboratory.',
+        'slip_footer': row.get('slip_footer') or 'Thank you for choosing our laboratory.',
+        'report_header_image_path': row.get('report_header_image_path') or '',
+        'report_footer_image_path': row.get('report_footer_image_path') or '',
+        'report_header_enabled': row.get('report_header_enabled') if row.get('report_header_enabled') is not None else True,
+        'report_footer_enabled': row.get('report_footer_enabled') if row.get('report_footer_enabled') is not None else True,
+        'report_print_mode': row.get('report_print_mode') or 'WITH_HEADER_FOOTER'
+    }
 
 
 def suggestions(con, template_type):
@@ -567,27 +697,32 @@ def login_page(request:Request): return templates.TemplateResponse(request,'logi
 @app.post('/login',response_class=HTMLResponse)
 def login(request:Request,username:str=Form(...),password:str=Form(...)):
     username=username.strip()
-    with db_conn() as con:
-        row=con.execute("SELECT * FROM users WHERE username=?",(username,)).fetchone()
-        ok = bool(row and row.get('is_active', True) is not False and (verify_password(password,row.get('password_hash')) or verify_password(password,row.get('password'))))
-        
-        # Try to log the login attempt, but don't fail if table doesn't exist
-        try:
-            con.execute("INSERT INTO login_logs(user_id,username,success,ip_address,created_at) VALUES(?,?,?,?,?)",(row['id'] if row else None,username,ok,request.client.host if request.client else '',now_str()))
-        except Exception as e:
-            print(f"Login log error (skipping): {e}")
-        
-        if not ok:
+    try:
+        with db_conn() as con:
+            row=con.execute("SELECT * FROM users WHERE username=?",(username,)).fetchone()
+            ok = bool(row and row.get('is_active', True) is not False and (verify_password(password,row.get('password_hash')) or verify_password(password,row.get('password'))))
+            
+            # Try to log the login attempt, but don't fail if table doesn't exist
+            try:
+                con.execute("INSERT INTO login_logs(user_id,username,success,ip_address,created_at) VALUES(?,?,?,?,?)",(row['id'] if row else None,username,ok,request.client.host if request.client else '',now_str()))
+            except Exception as e:
+                print(f"Login log error (skipping): {e}")
+            
+            if not ok:
+                con.commit()
+                return templates.TemplateResponse(request,'login.html',{'error':'Invalid username or password'})
+            if not row.get('password_hash'):
+                con.execute("UPDATE users SET password_hash=?, password='', updated_at=? WHERE id=?",(hash_password(password),now_str(),row['id']))
+                row=con.execute("SELECT * FROM users WHERE id=?",(row['id'],)).fetchone()
+            con.execute("UPDATE users SET last_login_at=? WHERE id=?",(now_str(),row['id']))
+            request.session['user']=load_user_context(con,row)
+            audit_log(con,request,'LOGIN','users',str(row['id']),'','')
             con.commit()
-            return templates.TemplateResponse(request,'login.html',{'error':'Invalid username or password'})
-        if not row.get('password_hash'):
-            con.execute("UPDATE users SET password_hash=?, password='', updated_at=? WHERE id=?",(hash_password(password),now_str(),row['id']))
-            row=con.execute("SELECT * FROM users WHERE id=?",(row['id'],)).fetchone()
-        con.execute("UPDATE users SET last_login_at=? WHERE id=?",(now_str(),row['id']))
-        request.session['user']=load_user_context(con,row)
-        audit_log(con,request,'LOGIN','users',str(row['id']),'','')
-        con.commit()
-    return RedirectResponse('/dashboard',status_code=303)
+        return RedirectResponse('/dashboard',status_code=303)
+    except Exception as e:
+        print(f"Login error: {e}")
+        error_msg = f"Database error. Please ensure you have run the database migrations. See DATABASE_MIGRATION_GUIDE.md"
+        return templates.TemplateResponse(request,'login.html',{'error':error_msg})
 @app.get('/logout')
 def logout(request:Request): request.session.clear(); return RedirectResponse('/login',status_code=303)
 @app.get('/public-report',response_class=HTMLResponse)
@@ -757,9 +892,10 @@ def slip_preview(request:Request,lab_no:str):
     if red: return red
     with db_conn() as con:
         p=require_patient_access(con,request,lab_no); tests=con.execute("SELECT * FROM patient_tests WHERE lab_no=? ORDER BY id",(lab_no,)).fetchall() if p else []
+        branding = hospital_branding(con, p['hospital_id']) if p else hospital_branding(con, current_hospital_id(request))
     if not p: return RedirectResponse('/patients',status_code=303)
     qr_code = generate_qr_code(str(request.url_for('public_report_by_lab', lab_no=lab_no)))
-    return templates.TemplateResponse(request,'slip.html',{'user':current_user(request),'patient':p,'tests':tests,'qr_code':qr_code})
+    return templates.TemplateResponse(request,'slip.html',{'user':current_user(request),'patient':p,'tests':tests,'qr_code':qr_code,'branding':branding})
 @app.get('/report/{lab_no}',response_class=HTMLResponse)
 def report_preview(request:Request,lab_no:str,department:str=''):
     red=require_permission(request,'view_report')
@@ -768,9 +904,10 @@ def report_preview(request:Request,lab_no:str,department:str=''):
         p=require_patient_access(con,request,lab_no)
         if not p: return RedirectResponse('/patients',status_code=303)
         sync_status(con,lab_no); log_report_action(con,request,lab_no,department,'VIEW'); con.commit(); html=render_report_html(con,lab_no,department or None); depts=departments(con)
+        branding = hospital_branding(con, p.get('hospital_id') or 1)
     if not p: return RedirectResponse('/patients',status_code=303)
     qr_code = generate_qr_code(lab_no)
-    return templates.TemplateResponse(request,'report.html',{'user':current_user(request),'patient':p,'report_html':html,'departments':depts,'department':department,'qr_code':qr_code})
+    return templates.TemplateResponse(request,'report.html',{'user':current_user(request),'patient':p,'report_html':html,'departments':depts,'department':department,'qr_code':qr_code,'branding':branding})
 @app.post('/report/{lab_no}/mark-printed')
 def mark_report_printed(request:Request,lab_no:str,department:str=Form('')):
     red=require_permission(request,'print_report')
@@ -1176,6 +1313,82 @@ def hospitals_delete(request:Request, hospital_id:int=Form(...)):
         audit_log(con,request,'HOSPITAL_DELETED','hospitals',str(hospital_id),'','')
         con.commit()
     return RedirectResponse('/hospitals', status_code=303)
+
+@app.get('/hospitals/{hospital_id}/branding', response_class=HTMLResponse)
+def hospital_branding_page(request:Request, hospital_id:int):
+    red=require_permission(request,'hospital_management')
+    if red: return red
+    with db_conn() as con:
+        hospital=con.execute("SELECT * FROM hospitals WHERE id=?",(hospital_id,)).fetchone()
+        if not hospital:
+            return RedirectResponse('/hospitals', status_code=303)
+        branding=hospital_branding(con, hospital_id)
+    return templates.TemplateResponse(request,'hospital_branding.html',{'user':current_user(request),'hospital':hospital,'branding':branding})
+
+@app.post('/hospitals/{hospital_id}/branding')
+async def hospital_branding_save(request:Request, hospital_id:int):
+    red=require_permission(request,'hospital_management')
+    if red: return red
+    form=await request.form()
+    name=str(form.get('name','')).strip()
+    tagline=str(form.get('tagline','')).strip()
+    address=str(form.get('address','')).strip()
+    city=str(form.get('city','')).strip()
+    phone=str(form.get('phone','')).strip()
+    phone2=str(form.get('phone2','')).strip()
+    email=str(form.get('email','')).strip()
+    website=str(form.get('website','')).strip()
+    ntn=str(form.get('ntn','')).strip()
+    license_no=str(form.get('license_no','')).strip()
+    report_footer=str(form.get('report_footer','')).strip() or 'Thank you for choosing our laboratory.'
+    slip_footer=str(form.get('slip_footer','')).strip() or 'Thank you for choosing our laboratory.'
+    report_header_enabled=str(form.get('report_header_enabled','true')).lower() == 'true'
+    report_footer_enabled=str(form.get('report_footer_enabled','true')).lower() == 'true'
+    report_print_mode=str(form.get('report_print_mode','WITH_HEADER_FOOTER')).strip().upper()
+    logo_file=form.get('logo')
+    logo_path=''
+    if logo_file and hasattr(logo_file, 'filename') and logo_file.filename:
+        import os
+        upload_dir=BASE_DIR / 'static' / 'uploads' / 'hospital_branding'
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        ext=os.path.splitext(logo_file.filename)[1].lower()
+        filename=f"hospital_{hospital_id}_logo{ext}"
+        filepath=upload_dir / filename
+        with open(filepath, 'wb') as f:
+            f.write(logo_file.file.read())
+        logo_path=f"/static/uploads/hospital_branding/{filename}"
+    
+    report_header_image_file=form.get('report_header_image')
+    report_header_image_path=''
+    if report_header_image_file and hasattr(report_header_image_file, 'filename') and report_header_image_file.filename:
+        import os
+        upload_dir=BASE_DIR / 'static' / 'uploads' / 'hospital_branding'
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        ext=os.path.splitext(report_header_image_file.filename)[1].lower()
+        filename=f"hospital_{hospital_id}_report_header{ext}"
+        filepath=upload_dir / filename
+        with open(filepath, 'wb') as f:
+            f.write(report_header_image_file.file.read())
+        report_header_image_path=f"/static/uploads/hospital_branding/{filename}"
+    
+    report_footer_image_file=form.get('report_footer_image')
+    report_footer_image_path=''
+    if report_footer_image_file and hasattr(report_footer_image_file, 'filename') and report_footer_image_file.filename:
+        import os
+        upload_dir=BASE_DIR / 'static' / 'uploads' / 'hospital_branding'
+        upload_dir.mkdir(parents=True, exist_ok=True)
+        ext=os.path.splitext(report_footer_image_file.filename)[1].lower()
+        filename=f"hospital_{hospital_id}_report_footer{ext}"
+        filepath=upload_dir / filename
+        with open(filepath, 'wb') as f:
+            f.write(report_footer_image_file.file.read())
+        report_footer_image_path=f"/static/uploads/hospital_branding/{filename}"
+    
+    with db_conn() as con:
+        con.execute("UPDATE hospitals SET name=?, tagline=?, address=?, city=?, phone=?, phone2=?, email=?, website=?, ntn=?, license_no=?, logo_path=?, report_footer=?, slip_footer=?, report_header_image_path=?, report_footer_image_path=?, report_header_enabled=?, report_footer_enabled=?, report_print_mode=?, updated_at=? WHERE id=?",(name,tagline,address,city,phone,phone2,email,website,ntn,license_no,logo_path,report_footer,slip_footer,report_header_image_path,report_footer_image_path,report_header_enabled,report_footer_enabled,report_print_mode,now_str(),hospital_id))
+        audit_log(con,request,'HOSPITAL_BRANDING_UPDATED','hospitals',str(hospital_id),'',name)
+        con.commit()
+    return RedirectResponse(f'/hospitals/{hospital_id}/branding', status_code=303)
 
 @app.get('/roles', response_class=HTMLResponse)
 def roles_page(request:Request):

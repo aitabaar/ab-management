@@ -11,7 +11,20 @@
     <a class="button ghost" href="/patients/{{ patient.lab_no }}">Back</a>
   </div>
   <section class="slip-page">
-    <div class="slip-title">Patient Receipt / Collection Slip</div>
+    {% if branding.logo_path %}
+    <div style="text-align:center; margin-bottom:10px;">
+      <img src="{{ branding.logo_path }}" style="max-height:60px; max-width:200px; object-fit:contain;" alt="Logo">
+    </div>
+    {% endif %}
+    <div class="slip-title" style="font-size:14px; margin-bottom:6px;">{{ branding.name }}</div>
+    {% if branding.tagline %}<div style="text-align:center; font-size:10px; color:#666; margin-bottom:4px;">{{ branding.tagline }}</div>{% endif %}
+    {% if branding.address %}<div style="text-align:center; font-size:10px; color:#666;">{{ branding.address }}{% if branding.city %}, {{ branding.city }}{% endif %}</div>{% endif %}
+    <div style="text-align:center; font-size:10px; color:#666;">
+      {% if branding.phone %}Tel: {{ branding.phone }}{% endif %}
+      {% if branding.phone2 %} / {{ branding.phone2 }}{% endif %}
+      {% if branding.website %}<br>{{ branding.website }}{% endif %}
+    </div>
+    <div style="border-bottom:1px solid #111; margin:8px 0;"></div>
     <div class="slip-head">
       <div>
         <div class="slip-name">{{ patient.title }} {{ patient.patient_name|upper }}</div>
@@ -50,6 +63,10 @@
       <div class="balance"><span>Balance</span><b>Rs. {{ patient.balance|money }}</b></div>
     </div>
     <div class="slip-footer">Payment Status: {{ patient.payment_status }}</div>
+    <div style="border-top:1px solid #111; margin-top:10px; padding-top:6px;">
+      <div style="font-size:10px; text-align:center; color:#666;">{{ branding.slip_footer }}</div>
+      <div style="font-size:8px; text-align:center; color:#999; margin-top:4px;">Powered by Hype Management</div>
+    </div>
   </section>
 </body>
 </html>

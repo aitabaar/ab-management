@@ -3,84 +3,362 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>AB Lab - Report Portal</title>
+  <title>Hype Management — Custom Software & Management Portals</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="/static/app.css">
 </head>
-<body class="site-body">
-  <header class="site-header">
-    <a class="site-brand" href="/">
-      <span class="site-mark">AB</span>
-      <span><strong>AB Management</strong><small>Professional Management Solutions</small></span>
+<body>
+
+<!-- ============================================================
+     NAVBAR
+     ============================================================ -->
+<nav class="home-navbar" id="navbar">
+  <div class="home-nav-inner">
+    <a href="/" class="home-nav-brand">
+      <img src="/static/images/hype-management-logo.png" alt="Hype Management Logo" class="home-nav-logo">
+      <div class="home-nav-text">
+        <span class="home-nav-name">Hype Management</span>
+        <span class="home-nav-tagline">Empowering Businesses with Smart Technology</span>
+      </div>
     </a>
-    <nav class="site-nav">
-      <a href="/public-report">View Report</a>
-      {% if user %}<a href="/logout">Logout</a>{% endif %}
-      <a class="button" href="/login">Staff Login</a>
-    </nav>
-  </header>
+    <ul class="home-nav-links" id="navLinks">
+      <li><a href="/" class="active">Home</a></li>
+      <li><a href="#services">Services</a></li>
+      <li><a href="#solutions">Solutions</a></li>
+      <li><a href="#lab-report">Lab Reports</a></li>
+      <li><a href="#contact">Contact</a></li>
+      <li class="nav-mobile-only"><a href="/login"><i class="fas fa-sign-in-alt"></i> Staff Login</a></li>
+      <li class="nav-mobile-only"><a href="/public-report"><i class="fas fa-file-medical"></i> Lab Report</a></li>
+    </ul>
+    <div class="home-nav-right">
+      <a href="/login" class="home-nav-login"><i class="fas fa-sign-in-alt"></i> Staff Login</a>
+      <a href="#demo" class="home-nav-cta">Get Free Demo</a>
+      <button class="home-hamburger" id="hamburger" aria-label="Toggle menu">
+        <i class="fas fa-bars"></i>
+      </button>
+    </div>
+  </div>
+</nav>
 
-  <main class="site-main">
-    <section class="site-hero">
-      <div class="site-copy">
-        <h1>Professional Management Solutions</h1>
-        <p>AB Management provides comprehensive software solutions for Lab Management, Hospital Management, Restaurant Management, and HR Systems. Check your lab report online and manage operations efficiently with our integrated platform.</p>
-        <form method="get" action="/public-report" class="site-report-form">
-          <input name="lab_no" placeholder="Enter Lab No, e.g. 0004" required>
-          <button>View Report</button>
-        </form>
-        <div class="site-actions">
-          <a class="button ghost" href="/login">Staff Login</a>
-        </div>
-      </div>
-      <div class="site-preview" aria-label="Report portal preview">
-        <div class="preview-strip">
-          <span></span><span></span><span></span>
-        </div>
-        <div class="preview-patient">
-          <div><strong>Patient Report</strong><small>PID 0004</small></div>
-          <div class="preview-qr"></div>
-        </div>
-        <table class="preview-table">
-          <tr><th>Test</th><th>Result</th><th>Range</th></tr>
-          <tr><td>Hemoglobin</td><td>12</td><td>11.5 - 16.5</td></tr>
-          <tr><td>Creatinine</td><td>1.0</td><td>0.5 - 1.3</td></tr>
-          <tr><td>Urea</td><td>28</td><td>10 - 50</td></tr>
-        </table>
-      </div>
-    </section>
-  </main>
+<!-- Mobile nav overlay -->
+<div class="home-nav-overlay" id="navOverlay"></div>
 
-  <footer class="site-footer">
-    <div class="footer-container">
-      <div class="footer-content">
-        <h3>AB Management</h3>
-        <p>Professional Management Software Solutions</p>
-        <p><strong>Contact Information:</strong></p>
-        <p class="contact-info">
-          <strong>Syed Ali Abidi</strong> - 03351332350<br>
-          <strong>Syed Baqar Kazmi</strong> - 03218990904
-        </p>
-      </div>
-      <div class="footer-services">
-        <h4>Our Services</h4>
-        <ul>
-          <li>Lab Management System</li>
-          <li>Hospital Management System</li>
-          <li>Restaurant Management System</li>
-          <li>HR Management System</li>
-        </ul>
-      </div>
-      <div class="footer-links">
-        <h4>Quick Links</h4>
-        <ul>
-          <li><a href="/public-report">View Report</a></li>
-          <li><a href="/login">Staff Login</a></li>
-        </ul>
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="home-hero">
+  <div class="home-hero-bg"></div>
+  <div class="home-hero-inner">
+    <div class="home-hero-content">
+      <span class="home-hero-badge">Trusted by 50+ healthcare facilities</span>
+      <h1>Custom Software & Management Portals for Modern Businesses</h1>
+      <p class="home-hero-sub">We build web applications, business portals, custom dashboards, and management systems for laboratories, hospitals, companies, and service businesses. Streamline your operations with our professional software solutions.</p>
+      <div class="home-hero-actions">
+        <a href="#demo" class="btn-hero-primary"><i class="fas fa-calendar-check"></i> Get Free Demo</a>
+        <a href="/public-report" class="btn-hero-secondary"><i class="fas fa-file-medical"></i> View Lab Report</a>
       </div>
     </div>
-    <div class="footer-bottom">
-      <p>&copy; 2024 AB Management. All rights reserved.</p>
+    <div class="home-hero-visual">
+      <div class="hero-mockup">
+        <div class="hero-mockup-top">
+          <div class="mockup-dots"><span></span><span></span><span></span></div>
+          <div class="mockup-user"><i class="fas fa-user-circle"></i> Admin</div>
+        </div>
+        <div class="hero-mockup-body">
+          <div class="mockup-stats">
+            <div class="mockup-stat" style="background:#ccfbf1;">
+              <span>Patients</span>
+              <strong>1,247</strong>
+            </div>
+            <div class="mockup-stat" style="background:#e0f2fe;">
+              <span>Revenue</span>
+              <strong>Rs. 2.4M</strong>
+            </div>
+            <div class="mockup-stat" style="background:#fef3c7;">
+              <span>Pending</span>
+              <strong>38</strong>
+            </div>
+          </div>
+          <div class="mockup-chart">
+            <div class="mockup-bar" style="height:60px;"></div>
+            <div class="mockup-bar" style="height:90px;"></div>
+            <div class="mockup-bar" style="height:45px;"></div>
+            <div class="mockup-bar" style="height:110px;"></div>
+            <div class="mockup-bar" style="height:70px;"></div>
+            <div class="mockup-bar" style="height:85px;"></div>
+          </div>
+          <div class="mockup-table">
+            <div class="mockup-tr"><span>PID-0042</span><span>Ali Ahmed</span><span class="mockup-status ready">Ready</span></div>
+            <div class="mockup-tr"><span>PID-0043</span><span>Sara Khan</span><span class="mockup-status pending">Pending</span></div>
+            <div class="mockup-tr"><span>PID-0044</span><span>Usman Raza</span><span class="mockup-status ready">Ready</span></div>
+          </div>
+        </div>
+      </div>
     </div>
-  </footer>
+  </div>
+</section>
+
+<!-- ============================================================
+     LAB REPORT SEARCH
+     ============================================================ -->
+<section class="report-search-section" id="lab-report">
+  <div class="report-search-card">
+    <div class="report-search-icon"><i class="fas fa-flask"></i></div>
+    <h2>View Your Lab Report Online</h2>
+    <p>Enter your lab number to instantly view and print your report.</p>
+    <form method="get" action="/public-report" class="report-search-form">
+      <input name="lab_no" placeholder="Enter Lab No, e.g. 0004" required>
+      <button type="submit"><i class="fas fa-search"></i> View Report</button>
+    </form>
+  </div>
+</section>
+
+<!-- ============================================================
+     SERVICES SECTION
+     ============================================================ -->
+<section class="services-section" id="services">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-badge">What We Build</span>
+      <h2>Our Services</h2>
+      <p class="section-sub">End-to-end software development for businesses of all sizes</p>
+    </div>
+    <div class="services-grid">
+      <div class="service-card">
+        <div class="service-icon" style="background:#ccfbf1; color:#0d9488;"><i class="fas fa-flask"></i></div>
+        <h3>Lab Management Software</h3>
+        <p>Complete LIS with patient registration, test management, result entry, and automated report generation with QR codes.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon" style="background:#e0f2fe; color:#0284c7;"><i class="fas fa-hospital"></i></div>
+        <h3>Hospital Management Software</h3>
+        <p>Multi-branch hospital management with OPD, IPD, pharmacy, billing, and role-based staff access control.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon" style="background:#fef3c7; color:#d97706;"><i class="fas fa-globe"></i></div>
+        <h3>Business Portal Development</h3>
+        <p>Custom web portals for enterprises, including client dashboards, data visualization, and team collaboration tools.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon" style="background:#f3e8ff; color:#9333ea;"><i class="fas fa-code"></i></div>
+        <h3>Custom Website Development</h3>
+        <p>Professional websites, landing pages, and web applications built with modern technologies and responsive design.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon" style="background:#fce7f3; color:#db2777;"><i class="fas fa-cubes"></i></div>
+        <h3>Billing & Inventory Systems</h3>
+        <p>Integrated billing, inventory tracking, purchase management, and financial reporting for retail and wholesale businesses.</p>
+      </div>
+      <div class="service-card">
+        <div class="service-icon" style="background:#d1fae5; color:#059669;"><i class="fas fa-users"></i></div>
+        <h3>HR & Staff Management</h3>
+        <p>Employee records, attendance tracking, payroll management, and performance evaluation systems for organizations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     WHY CHOOSE US
+     ============================================================ -->
+<section class="why-us-section" id="solutions">
+  <div class="section-inner">
+    <div class="why-us-grid">
+      <div class="why-us-content">
+        <span class="section-badge">Why Hype Management</span>
+        <h2>Built for Performance, Designed for Simplicity</h2>
+        <p>Every solution we build is crafted with modern technology, security-first architecture, and an intuitive user experience. We don't just deliver software — we deliver tools that transform how you work.</p>
+        <div class="why-us-features">
+          <div class="why-us-feature">
+            <i class="fas fa-cloud"></i>
+            <div><strong>Cloud Based</strong><span>Access from anywhere, anytime</span></div>
+          </div>
+          <div class="why-us-feature">
+            <i class="fas fa-lock"></i>
+            <div><strong>Secure Login System</strong><span>Encrypted authentication & sessions</span></div>
+          </div>
+          <div class="why-us-feature">
+            <i class="fas fa-user-shield"></i>
+            <div><strong>Role-Based Access</strong><span>Granular permissions per user</span></div>
+          </div>
+          <div class="why-us-feature">
+            <i class="fas fa-file-alt"></i>
+            <div><strong>Online Reports</strong><span>Instant patient report access</span></div>
+          </div>
+          <div class="why-us-feature">
+            <i class="fas fa-chart-pie"></i>
+            <div><strong>Custom Dashboards</strong><span>Tailored analytics & KPIs</span></div>
+          </div>
+          <div class="why-us-feature">
+            <i class="fas fa-wallet"></i>
+            <div><strong>Affordable Monthly Plans</strong><span>No large upfront costs</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="why-us-visual">
+        <div class="why-us-card">
+          <i class="fas fa-shield-alt"></i>
+          <strong>Enterprise Grade</strong>
+          <span>Security, reliability, and scalability built into every product.</span>
+        </div>
+        <div class="why-us-card">
+          <i class="fas fa-headset"></i>
+          <strong>24/7 Support</strong>
+          <span>Dedicated team available for your technical needs.</span>
+        </div>
+        <div class="why-us-card">
+          <i class="fas fa-rocket"></i>
+          <strong>Fast Delivery</strong>
+          <span>Agile development with rapid deployment cycles.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     INDUSTRIES
+     ============================================================ -->
+<section class="industries-section">
+  <div class="section-inner">
+    <div class="section-header">
+      <span class="section-badge">Who We Serve</span>
+      <h2>Industries We Serve</h2>
+      <p class="section-sub">Tailored solutions for diverse business sectors</p>
+    </div>
+    <div class="industries-grid">
+      <div class="industry-card">
+        <div class="industry-icon"><i class="fas fa-flask"></i></div>
+        <span>Laboratories</span>
+      </div>
+      <div class="industry-card">
+        <div class="industry-icon"><i class="fas fa-hospital"></i></div>
+        <span>Hospitals & Clinics</span>
+      </div>
+      <div class="industry-card">
+        <div class="industry-icon"><i class="fas fa-utensils"></i></div>
+        <span>Restaurants</span>
+      </div>
+      <div class="industry-card">
+        <div class="industry-icon"><i class="fas fa-school"></i></div>
+        <span>Schools</span>
+      </div>
+      <div class="industry-card">
+        <div class="industry-icon"><i class="fas fa-building"></i></div>
+        <span>Companies</span>
+      </div>
+      <div class="industry-card">
+        <div class="industry-icon"><i class="fas fa-concierge-bell"></i></div>
+        <span>Service Businesses</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================
+     CTA SECTION
+     ============================================================ -->
+<section class="cta-section" id="demo">
+  <div class="cta-inner">
+    <h2>Need a Custom Portal for Your Business?</h2>
+    <p>Let's discuss your requirements and build a solution tailored to your needs.</p>
+    <a href="#contact" class="btn-cta-primary"><i class="fas fa-paper-plane"></i> Request Demo</a>
+  </div>
+</section>
+
+<!-- ============================================================
+     FOOTER
+     ============================================================ -->
+<footer class="home-footer" id="contact">
+  <div class="footer-inner">
+    <div class="footer-col brand-col">
+      <div class="footer-brand">
+        <img src="/static/images/hype-management-logo.png" alt="Hype Management Logo" class="footer-logo">
+        <div class="footer-brand-text">
+          <strong>Hype Management</strong>
+          <span>Empowering Businesses with Smart Technology</span>
+        </div>
+      </div>
+      <p>Professional software development company specializing in management portals, business applications, and custom web solutions for healthcare, enterprise, and service industries.</p>
+      <div class="footer-contact">
+        <p><i class="fas fa-phone"></i> <strong>Syed Ali Abidi</strong> — 0335-1332350</p>
+        <p><i class="fas fa-phone"></i> <strong>Syed Baqar Kazmi</strong> — 0321-8990904</p>
+        <p><i class="fas fa-envelope"></i> hypeManagementss@gmail.com</p>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>Services</h4>
+      <ul>
+        <li>Lab Management Software</li>
+        <li>Hospital Management Software</li>
+        <li>Business Portal Development</li>
+        <li>Custom Website Development</li>
+        <li>Billing & Inventory Systems</li>
+        <li>HR & Staff Management</li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Quick Links</h4>
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#solutions">Solutions</a></li>
+        <li><a href="/public-report">Lab Report</a></li>
+        <li><a href="/login">Staff Login</a></li>
+        <li><a href="#demo">Get Demo</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Contact</h4>
+      <ul class="footer-contact-list">
+        <li><i class="fas fa-map-marker-alt"></i> Karachi, Pakistan</li>
+        <li><i class="fas fa-envelope"></i> hypeManagementss@gmail.com</li>
+        <li><i class="fas fa-globe"></i> www.hypeManagement.com</li>
+      </ul>
+      <div class="footer-social">
+        <a href="#" aria-label="Facebook"><i class="fab fa-facebook"></i></a>
+        <a href="#" aria-label="LinkedIn"><i class="fab fa-linkedin"></i></a>
+        <a href="#" aria-label="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p><strong>Hype Management</strong></p>
+    <p>Empowering Businesses with Smart Technology</p>
+    <p>Email: hypeManagementss@gmail.com</p>
+    <p style="margin-top: 8px;">&copy; 2026 Hype Management. All Rights Reserved.</p>
+  </div>
+</footer>
+
+<!-- Mobile nav script -->
+<script>
+document.getElementById('hamburger').addEventListener('click', function() {
+  document.getElementById('navLinks').classList.toggle('open');
+  document.getElementById('navOverlay').classList.toggle('open');
+  document.body.classList.toggle('no-scroll');
+});
+document.getElementById('navOverlay').addEventListener('click', function() {
+  document.getElementById('navLinks').classList.remove('open');
+  document.getElementById('navOverlay').classList.remove('open');
+  document.body.classList.remove('no-scroll');
+});
+// Close nav on link click
+document.querySelectorAll('#navLinks a').forEach(function(link) {
+  link.addEventListener('click', function() {
+    document.getElementById('navLinks').classList.remove('open');
+    document.getElementById('navOverlay').classList.remove('open');
+    document.body.classList.remove('no-scroll');
+  });
+});
+// Sticky navbar shadow on scroll
+window.addEventListener('scroll', function() {
+  var navbar = document.getElementById('navbar');
+  if (window.scrollY > 20) {
+    navbar.classList.add('scrolled');
+  } else {
+    navbar.classList.remove('scrolled');
+  }
+});
+</script>
 </body>
 </html>
